@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B2452">
+<title>ספירת העומר</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ספירת העומר">
+<meta name="description" content="ספירת העומר: נוסח לפי עדות, כוונות היום, למנצח בצורת המנורה, מעקב ותזכורות">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0F7; --surface:#FFFFFF; --surface-2:#E3E8F3; --ink:#19224A; --muted:#58618A;
+  --gold:#9C6F12; --gold-strong:#7A5306; --gold-wash:#F6E7BD; --line:#CDD4E6; --warn:#A8412F; --ok:#2F6B4A;
+  --serif:"Frank Ruhl Libre","Times New Roman",serif; --sans:"Assistant","Segoe UI",Arial,sans-serif;
+  --fs:1; --ui:calc(1 + (var(--fs) - 1) * .45);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131B3D; --surface:#1B2452; --surface-2:#243063; --ink:#EEE8D8; --muted:#A4ACCD;
+    --gold:#E4BC5A; --gold-strong:#F3D27E; --gold-wash:rgba(228,188,90,.17); --line:#34407A; --warn:#EE8A78; --ok:#8FD1A8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131B3D; --surface:#1B2452; --surface-2:#243063; --ink:#EEE8D8; --muted:#A4ACCD;
+  --gold:#E4BC5A; --gold-strong:#F3D27E; --gold-wash:rgba(228,188,90,.17); --line:#34407A; --warn:#EE8A78; --ok:#8FD1A8;
+}
+html{font-size:calc(17px * var(--ui));scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-text-size-adjust:100%}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:680px;margin:0 auto;padding:12px 16px 96px}
+
+/* top */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 10px}
+.top h1{font-family:var(--serif);font-weight:700;font-size:1.35rem;margin:0;letter-spacing:.01em}
+.top .heb{color:var(--muted);font-size:.9rem}
+.icon-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.icon-btn svg{width:20px;height:20px}
+
+.status{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:0.9rem;color:var(--muted);margin-bottom:12px}
+.status b{color:var(--ink);font-weight:600}
+
+/* hero */
+.hero{background:var(--surface);border-radius:22px;padding:18px 18px 16px;border:1px solid var(--line);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.8}
+.hero-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.when{font-size:.95rem;color:var(--muted);font-weight:600}
+.nav{display:flex;gap:6px}
+.nav button{display:grid;place-items:center;padding:0;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:1.1rem;line-height:1}
+.nav button:disabled{opacity:.35;cursor:default}
+.daynum{display:flex;align-items:baseline;gap:10px;margin:6px 0 2px}
+.daynum .n{font-family:var(--serif);font-size:3.4rem;line-height:1;color:var(--gold);font-weight:700}
+.daynum .of{color:var(--muted);font-size:.95rem}
+.count{font-family:var(--serif);font-size:calc(1.5rem * var(--fs) / var(--ui));line-height:1.55;margin:4px 0 12px}
+.kav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kav div{background:var(--gold-wash);border-radius:14px;padding:8px 10px;min-width:0}
+.kav small{display:block;color:var(--muted);font-size:0.9rem;font-weight:600}
+.kav span{font-family:var(--serif);font-size:calc(1.15rem * var(--fs) / var(--ui));font-weight:700;color:var(--gold-strong);display:block;overflow-wrap:anywhere}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:11px 18px;font-weight:700;background:var(--gold);color:#1B1606}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:600}
+.btn.done{background:transparent;border:1.5px solid var(--ok);color:var(--ok)}
+.btn.small{padding:7px 12px;font-size:0.9rem}
+.yesterday{font-size:.9rem;color:var(--muted);margin-top:12px}
+.yesterday b{color:var(--ink);font-family:var(--serif);font-weight:500}
+.banner{border-radius:14px;padding:10px 12px;font-size:.92rem;margin-top:12px;border:1px solid var(--line);background:var(--surface-2)}
+.banner.warn{border-color:var(--warn)}
+.banner strong{color:var(--warn)}
+.back-today{font-size:0.9rem;background:none;border:0;color:var(--gold);text-decoration:underline;padding:0}
+
+.dedic{margin:12px 0;border:1px dashed var(--line);border-radius:16px;padding:10px 14px;text-align:center;font-family:var(--serif);color:var(--muted);font-size:.98rem}
+.dedic b{color:var(--ink);font-weight:500}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface-2);border-radius:999px;padding:4px;margin:14px 0 12px}
+.tabs button{border:0;background:transparent;border-radius:999px;padding:9px 4px;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px}
+
+/* siddur */
+.sid section{margin-bottom:18px}
+.sid h3{font-family:var(--sans);font-size:0.9rem;color:var(--muted);margin:0 0 4px;font-weight:700}
+.sid p{font-family:var(--serif);font-size:calc(1.3rem * var(--fs) / var(--ui));line-height:1.9;margin:0}
+.sid .blessing{font-weight:700}
+.sid .countline{font-size:calc(1.45rem * var(--fs) / var(--ui));font-weight:700;color:var(--gold-strong);background:var(--gold-wash);padding:8px 12px;border-radius:12px}
+.hl{background:var(--gold-wash);color:var(--gold-strong);border-radius:.3em;padding:.02em .2em .14em;font-weight:700;box-shadow:inset 0 -2px 0 var(--gold);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hl-soft{color:var(--gold-strong);font-weight:700}
+.ana-line{display:flex;gap:10px;align-items:baseline;padding:2px 8px;border-radius:10px}
+.ana-line.on{background:var(--gold-wash)}
+.ana-line .acr{flex:0 0 auto;min-width:4.6em;font-family:var(--serif);color:var(--muted);font-size:calc(1rem * var(--fs) / var(--ui))}
+.ana-line.on .acr{color:var(--gold-strong);font-weight:700}
+.acr .l{padding:0 1px}
+.acr .l.on{color:var(--surface);background:var(--gold);border-radius:.25em;padding:0 .2em .1em}
+.ana-line .txt{font-family:var(--serif);font-size:calc(1.3rem * var(--fs) / var(--ui));line-height:1.8}
+.firstl{color:var(--gold)}
+.note{font-size:0.9rem;color:var(--muted);margin-top:4px}
+
+/* menorah */
+.men-title{font-family:var(--serif);text-align:center;font-size:calc(1.25rem * var(--fs) / var(--ui));font-weight:700;margin:0 0 10px}
+.men-scroll{overflow-x:auto}
+.men{min-width:340px}
+.flames,.branches{display:grid;grid-template-columns:repeat(7,1fr)}
+.flame{display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:4px}
+.flame svg{width:18px;height:26px}
+.flame .fl{fill:var(--line);transition:fill .3s}
+.flame.on .fl{fill:var(--gold)}
+.flame .ac{font-family:var(--serif);font-size:0.9rem;line-height:1.15;text-align:center;color:var(--muted)}
+.flame.on .ac{color:var(--gold-strong);font-weight:700}
+.branch{position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:center;height:calc(11 * 1.9em);font-size:clamp(10.5px,3.1vw,15px)}
+.branch::before{content:"";position:absolute;top:0;bottom:0;right:50%;width:4px;margin-right:-2px;background:var(--line);border-radius:2px;z-index:0}
+.branch.on::before{background:var(--gold)}
+.branch span{position:relative;z-index:1;font-family:var(--serif);background:var(--surface);padding:0 2px;border-radius:5px;line-height:1.3;white-space:nowrap}
+.branch span.past{color:var(--gold)}
+.branch span.today{background:var(--gold);color:#1B1606;font-weight:700;padding:1px 4px;box-shadow:0 0 0 3px var(--gold-wash)}
+.men svg.body{display:block;width:100%;height:auto}
+.men svg.body path{fill:none;stroke:var(--line);stroke-width:8;stroke-linecap:round}
+.men svg.body .base{fill:var(--line);stroke:none}
+.men-caption{text-align:center;font-family:var(--serif);margin-top:6px}
+.men-caption b{color:var(--gold-strong)}
+
+.men-scroll{overflow-x:auto;margin:0 -8px}
+svg.menorah{display:block;width:100%;height:auto}
+.menorah .chan{fill:none;stroke:var(--surface-2);stroke-width:var(--mcw);stroke-linecap:round}
+.menorah .chan.on{stroke:var(--gold-wash)}
+.menorah .mbase{fill:var(--surface-2)}
+.menorah text{font-family:var(--serif);fill:var(--ink)}
+.menorah .mw{font-size:var(--mfs)}
+.menorah .mw.past{fill:var(--gold)}
+.menorah .mw.today{fill:#1B1606;font-weight:700}
+.menorah .mw.today-t{fill:var(--gold-strong);font-weight:800}
+.menorah .mbase{fill:var(--surface-2);stroke:var(--line);stroke-width:1.5}
+.menorah .tbg{fill:var(--gold)}
+.menorah .tbg.soft{fill:var(--gold-wash)}
+.menorah .mtop{font-size:var(--mtfs);font-weight:700}
+.menorah .mfrag{font-size:var(--mffs);fill:var(--ink)}
+.menorah .mside{font-size:var(--msfs);fill:var(--muted)}
+.menorah .mside.on{fill:var(--muted);font-weight:600}
+.menorah .mside .lon{fill:var(--gold-strong);font-weight:800;font-size:1.35em}
+.tools{display:flex;gap:6px;align-items:center}
+.icon-btn.sm{width:36px;height:36px;font-family:var(--serif);font-weight:700;font-size:.9rem}
+.icon-btn.sm svg{width:18px;height:18px}
+.dedic{position:relative;margin:12px 0 6px;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:14px 16px;text-align:center}
+.ded-top{display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;color:var(--muted)}
+.ded-top .dn{display:flex;gap:4px;align-items:center}
+.ded-top .dn button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;padding:0}
+.ded-top .dn button:disabled{opacity:.3}
+.ded-purpose{font-family:var(--serif);color:var(--muted);margin-top:6px}
+.ded-name{color:var(--ink);font-family:var(--serif);font-size:calc(1.45rem * var(--fs) / var(--ui));font-weight:700;line-height:1.35}
+.ded-count{font-size:0.9rem;color:var(--muted);margin:4px 0 10px}
+.ded-count b{color:var(--gold-strong)}
+.ded-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn.locked{background:var(--gold-wash);color:var(--gold-strong);cursor:default}
+.ded-thanks{font-family:var(--serif);color:var(--gold-strong);margin-top:8px;min-height:1.4em}
+.spark{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px 3px var(--gold);pointer-events:none;animation:rise 1.8s ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translate(0,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-170px) scale(1.2)}}
+.glow{animation:glow 1.6s ease-out}
+@keyframes glow{0%{box-shadow:0 0 0 0 var(--gold)}40%{box-shadow:0 0 0 10px var(--gold-wash)}100%{box-shadow:0 0 0 0 transparent}}
+.quote{text-align:center;font-family:var(--serif);font-size:calc(1.1rem * var(--fs) / var(--ui));margin:4px 8px 0;color:var(--ink)}
+.quote small{font-size:.75em;color:var(--muted)}
+.activity{font-size:0.9rem;color:var(--muted);background:var(--surface-2);border-radius:12px;padding:8px 10px;margin-top:10px}
+.activity b{color:var(--ink)}
+.finish{display:flex;justify-content:center;margin-top:8px}
+.autobar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 8px;box-shadow:0 6px 20px rgba(10,14,35,.18);z-index:5}
+.autobar[hidden]{display:none}
+.autobar button{width:38px;height:38px;border-radius:50%;border:0;background:var(--surface-2);font-size:1.1rem;font-weight:700;display:grid;place-items:center;padding:0}
+.autobar #autoPlay{background:var(--gold);color:#1B1606}
+.autobar button:disabled{opacity:.35}
+.spd{display:flex;align-items:center;gap:6px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:ew-resize;border-radius:999px}
+.spd[hidden]{display:none}
+.spd span{min-width:5.5em;text-align:center;font-size:0.9rem;color:var(--muted);transition:color .15s}
+.spd.drag span{color:var(--gold-strong);font-weight:700}
+.autobar button:disabled{opacity:.35}
+.hesed{margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.hesed h3{font-family:var(--serif);margin:0 0 6px;font-size:1.15rem}
+.pts{display:flex;gap:10px;align-items:baseline}
+.pts .big{font-family:var(--serif);font-size:2rem;color:var(--gold);font-weight:700}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.badge{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:0.9rem;opacity:.4}
+.badge.got{opacity:1;border-color:var(--gold);background:var(--gold-wash)}
+table.hs{width:100%;border-collapse:collapse;font-size:.9rem}
+table.hs td,table.hs th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+table.hs th{color:var(--muted);font-weight:600;font-size:0.9rem}
+.mini{position:fixed;top:0;left:0;right:0;z-index:7;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:calc(6px + env(safe-area-inset-top,0px)) max(12px,calc((100% - 680px)/2 + 16px)) 6px;background:var(--surface);border-bottom:1px solid var(--line);
+  box-shadow:0 4px 14px rgba(10,14,35,.10);transform:translateY(-110%);transition:transform .22s ease}
+.mini.show{transform:none}
+.mini-count{border:0;background:none;padding:2px 0;text-align:right;font-family:var(--serif);font-size:1rem;line-height:1.3;min-width:0;display:flex;align-items:center;gap:8px}
+.mini-count span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mini-count b{color:var(--gold);font-size:1.45rem;flex:0 0 auto}
+details.grp{border:1px solid var(--line);border-radius:16px;padding:0 14px;margin-bottom:18px}
+details.grp[open]{padding-bottom:4px}
+details.grp summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer;font-weight:700;color:var(--muted)}
+details.grp summary::-webkit-details-marker{display:none}
+details.grp .chev{transition:transform .2s}
+details.grp[open] .chev{transform:rotate(180deg)}
+details.grp section:last-child{margin-bottom:10px}
+.icon-btn:disabled,.fs-ctrl button:disabled{opacity:.35;cursor:default}
+.btn.danger{background:var(--warn);color:#fff}
+.h3row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.linkbtn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 10px;font:600 .9rem var(--sans);color:var(--gold-strong)}
+.backrow{margin:-4px 0 8px}
+/* tracker */
+.grid{display:grid;grid-template-columns:4.2em repeat(7,1fr);gap:6px;align-items:center}
+.grid .wk{font-family:var(--serif);font-size:0.9rem;color:var(--muted)}
+.cell{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);background:transparent;font-family:var(--serif);font-size:0.9rem;display:grid;place-items:center;padding:0}
+.cell.y{background:var(--gold);border-color:var(--gold);color:#1B1606;font-weight:700}
+.cell.n{border-color:var(--warn);color:var(--warn);border-style:dashed}
+.cell.fut{opacity:.4;cursor:default}
+.cell.tonight{box-shadow:0 0 0 3px var(--gold-wash);border-color:var(--gold)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:0.9rem;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:5px;vertical-align:-1px;border:1.5px solid var(--line)}
+.legend i.y{background:var(--gold);border-color:var(--gold)}
+.legend i.n{border-color:var(--warn);border-style:dashed}
+.stats{margin-top:12px;font-size:.92rem}
+
+/* dialogs */
+dialog{border:0;border-radius:22px;padding:0;background:var(--surface);color:var(--ink);width:min(560px,94vw);max-height:88vh}
+dialog::backdrop{background:rgba(10,14,35,.55)}
+.dlg{padding:18px;overflow:auto;max-height:88vh}
+.dlg h2{font-family:var(--serif);margin:0 0 10px;font-size:1.3rem}
+.field{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.field label{font-weight:600}
+.field small{display:block;color:var(--muted);font-weight:400;font-size:0.9rem}
+.field select,.field input[type=datetime-local],.field input[type=number]{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:7px 9px;max-width:55%}
+.switch{appearance:none;width:46px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:0 0 auto;cursor:pointer;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch:checked{background:var(--gold)}
+.switch:checked::after{transform:translateX(-18px)}
+.ask-list{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.ask-item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface-2);border-radius:12px;padding:8px 10px}
+.ask-item .seg{display:flex;gap:4px}
+.ask-item .seg button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 10px;font-size:0.9rem}
+.ask-item .seg button.sel-y{background:var(--gold);border-color:var(--gold);color:#1B1606;font-weight:700}
+.ask-item .seg button.sel-n{border-color:var(--warn);color:var(--warn);font-weight:700}
+.fs-ctrl{display:flex;gap:6px}
+.fs-ctrl button{width:38px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:700}
+.toast{position:fixed;left:50%;z-index:6;bottom:calc(70px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="mini" id="mini" aria-hidden="true">
+  <button class="mini-count" id="miniCount" aria-label="חזרה לראש העמוד"></button>
+  <div class="tools">
+    <button class="icon-btn sm" id="mFsDown" aria-label="הקטן טקסט" tabindex="-1">א−</button>
+    <button class="icon-btn sm" id="mFsUp" aria-label="הגדל טקסט" tabindex="-1">א+</button>
+    <button class="icon-btn sm" id="mTheme" aria-label="בהיר או כהה" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg></button>
+    <button class="icon-btn sm" id="mSettings" aria-label="הגדרות" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</div>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>ספירת העומר</h1>
+      <div class="heb" id="hebDate"></div>
+    </div>
+    <div class="tools">
+    <button class="icon-btn sm" id="qFsDown" aria-label="הקטן טקסט">א−</button>
+    <button class="icon-btn sm" id="qFsUp" aria-label="הגדל טקסט">א+</button>
+    <button class="icon-btn sm" id="qTheme" aria-label="בהיר או כהה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg></button>
+    <button class="icon-btn" id="openSettings" aria-label="הגדרות">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button></div>
+  </header>
+  <div class="status" id="status"></div>
+
+  <section class="hero" aria-live="polite">
+    <div class="hero-head">
+      <div class="when" id="when"></div>
+      <div class="nav">
+        <button id="prevDay" aria-label="יום קודם"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button id="nextDay" aria-label="יום הבא"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="daynum"><span class="n" id="dayNum"></span><span class="of" id="dayOf"></span></div>
+    <div class="count" id="countText"></div>
+    <div class="kav">
+      <div><small>ספירה</small><span id="kSef"></span></div>
+      <div><small>אנא בכח</small><span id="kAna"></span></div>
+      <div><small>למנצח</small><span id="kPs"></span></div>
+    </div>
+    <div class="row" id="actions"></div>
+    <div class="yesterday" id="yesterday"></div>
+    <div id="banners"></div>
+  </section>
+
+  <section class="dedic" id="dedic"></section>
+  <div class="quote" id="quote"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="sid">סדר הספירה</button>
+    <button role="tab" aria-selected="false" data-tab="men">מנורה</button>
+    <button role="tab" aria-selected="false" data-tab="trk">המעקב שלי</button>
+  </nav>
+  <section class="panel" id="panel"></section>
+</div>
+
+<dialog id="settings"><div class="dlg">
+  <h2>הגדרות</h2>
+  <div class="field"><label for="sNusach">נוסח</label>
+    <select id="sNusach"><option value="em">עדות המזרח</option><option value="sefard">ספרד</option><option value="ashk">אשכנז</option><option value="chabad">חב"ד</option></select></div>
+  <div class="field"><label for="sNikud">ניקוד</label><input type="checkbox" class="switch" id="sNikud"></div>
+  <div class="field"><label for="sBefore">תפילות לפני הספירה</label><input type="checkbox" class="switch" id="sBefore"></div>
+  <div class="field"><label for="sAfter">תפילות אחרי הספירה</label><input type="checkbox" class="switch" id="sAfter"></div>
+  <div class="field"><label>גודל טקסט</label><div class="fs-ctrl"><button id="fsDown" aria-label="הקטן">א-</button><button id="fsUp" aria-label="הגדל">א+</button></div></div>
+  <div class="field"><label for="sLoc">מיקום<small>לחישוב צאת הכוכבים</small></label><select id="sLoc"></select></div>
+  <div class="field"><label>מיקום נוכחי</label><button class="btn ghost small" id="geo">אתר אותי</button></div>
+  <div class="field"><label for="sTzeit">שיטת צאת הכוכבים</label>
+    <select id="sTzeit"><option value="d8.5">8.5° מתחת לאופק</option><option value="d7.083">7.083° (ג' כוכבים בינוניים)</option><option value="m18">18 דק' אחרי השקיעה</option><option value="m20">20 דק' אחרי השקיעה</option><option value="m72">72 דק' (ר"ת)</option></select></div>
+  <div class="field"><label for="sRemind">תזכורת<small>התראה בצאת הכוכבים</small></label><input type="checkbox" class="switch" id="sRemind"></div>
+  <div class="field"><label for="sOffset">דקות אחרי צאת הכוכבים</label><input type="number" id="sOffset" min="0" max="240" step="5" style="width:80px"></div>
+  <div class="field"><label for="sTheme">ערכת צבע</label><select id="sTheme"><option value="auto">לפי המכשיר</option><option value="light">בהירה</option><option value="dark">כהה</option></select></div>
+  <div class="field"><label for="sSim">תצוגה לפי תאריך אחר<small>לבדיקה ותצוגה מקדימה</small></label><input type="datetime-local" id="sSim"></div>
+  <div class="field"><label>הגדרות משתמש<small>נוסח, תצוגה, מיקום ותזכורות</small></label><button class="btn ghost small" id="resetSettings">אפס הגדרות</button></div>
+  <div class="field"><label>נתוני מעקב<small>ימים שסומנו, זמני קריאה ושמות שהוזכרו</small></label><button class="btn ghost small" id="resetData">מחק הכל</button></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="closeSettings">סגור</button></div>
+</div></dialog>
+
+<dialog id="ask"><div class="dlg">
+  <h2>האם ספרת בימים האלה?</h2>
+  <div class="note">לא השתמשת באפליקציה בימים אלה. סמן כדי שנדע אם ממשיכים לספור בברכה.</div>
+  <div class="ask-list" id="askList"></div>
+  <div class="row" style="justify-content:space-between">
+    <button class="btn ghost small" id="askAllYes">ספרתי בכולם</button>
+    <div class="row"><button class="btn ghost small" id="askLater">אחר כך</button><button class="btn" id="askSave">שמור</button></div>
+  </div>
+</div></dialog>
+
+<div class="autobar" id="autobar" hidden>
+  <button id="autoPlay" aria-label="גלילה אוטומטית"></button>
+  <div class="spd" role="slider" aria-label="מהירות גלילה" aria-valuemin="1" aria-valuemax="5" tabindex="0">
+    <button id="autoSlow" aria-label="האט" tabindex="-1">−</button>
+    <span id="autoSpeed"></span>
+    <button id="autoFast" aria-label="האץ" tabindex="-1">+</button>
+  </div>
+</div>
+<dialog id="confirmDlg"><div class="dlg">
+  <h2 id="cfTitle"></h2><p id="cfMsg" style="margin:0 0 16px"></p>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cfNo">ביטול</button><button class="btn danger" id="cfYes"></button></div>
+</div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DATA ============ */
+const SEF=['חֶסֶד','גְּבוּרָה','תִּפְאֶרֶת','נֶצַח','הוֹד','יְסוֹד','מַלְכוּת'];
+const SEFB=['שֶׁבְּחֶסֶד','שֶׁבִּגְבוּרָה','שֶׁבְּתִפְאֶרֶת','שֶׁבְּנֶצַח','שֶׁבְּהוֹד','שֶׁבִּיסוֹד','שֶׁבְּמַלְכוּת'];
+const ANA=[
+ {w:['אָנָּא','בְּכֹחַ','גְּדֻלַּת','יְמִינֶךָ','תַּתִּיר','צְרוּרָה'],a:['א','ב','ג','י','ת','ץ']},
+ {w:['קַבֵּל','רִנַּת','עַמֶּךָ','שַׂגְּבֵנוּ','טַהֲרֵנוּ','נוֹרָא'],a:['ק','ר','ע','ש','ט','ן']},
+ {w:['נָא','גִבּוֹר','דּוֹרְשֵׁי','יִחוּדֶךָ','כְּבָבַת','שָׁמְרֵם'],a:['נ','ג','ד','י','כ','ש']},
+ {w:['בָּרְכֵם','טַהֲרֵם','רַחֲמֵי','צִדְקָתֶךָ','תָּמִיד','גָּמְלֵם'],a:['ב','ט','ר','צ','ת','ג']},
+ {w:['חֲסִין','קָדוֹשׁ','בְּרֹב','טוּבְךָ','נַהֵל','עֲדָתֶךָ'],a:['ח','ק','ב','ט','נ','ע']},
+ {w:['יָחִיד','גֵּאֶה','לְעַמְּךָ','פְּנֵה','זוֹכְרֵי','קְדֻשָּׁתֶךָ'],a:['י','ג','ל','פ','ז','ק']},
+ {w:['שַׁוְעָתֵנוּ','קַבֵּל','וּשְׁמַע','צַעֲקָתֵנוּ','יוֹדֵעַ','תַּעֲלוּמוֹת'],a:['ש','ק','ו','צ','י','ת']}
+];
+const acro=a=>a[0]+a[1]+'"'+a[2]+' '+a[3]+a[4]+'"'+a[5];
+const PS_TITLE='לַמְנַצֵּחַ בִּנְגִינֹת מִזְמוֹר שִׁיר';
+const PS=[
+ ['אֱלֹהִים','יְחָנֵּנוּ','וִיבָרְכֵנוּ','יָאֵר','פָּנָיו','אִתָּנוּ','סֶלָה'],
+ ['לָדַעַת','בָּאָרֶץ','דַּרְכֶּךָ','בְּכָל','גּוֹיִם','יְשׁוּעָתֶךָ'],
+ ['יוֹדוּךָ','עַמִּים','אֱלֹהִים','יוֹדוּךָ','עַמִּים','כֻּלָּם'],
+ ['יִשְׂמְחוּ','וִירַנְּנוּ','לְאֻמִּים','כִּי','תִשְׁפֹּט','עַמִּים','מִישׁוֹר','וּלְאֻמִּים','בָּאָרֶץ','תַּנְחֵם','סֶלָה'],
+ ['יוֹדוּךָ','עַמִּים','אֱלֹהִים','יוֹדוּךָ','עַמִּים','כֻּלָּם'],
+ ['אֶרֶץ','נָתְנָה','יְבוּלָהּ','יְבָרְכֵנוּ','אֱלֹהִים','אֱלֹהֵינוּ'],
+ ['יְבָרְכֵנוּ','אֱלֹהִים','וְיִירְאוּ','אוֹתוֹ','כָּל','אַפְסֵי','אָרֶץ']
+];
+const PS_FLAT=[];PS.forEach((v,vi)=>v.forEach((w,wi)=>PS_FLAT.push({w,vi,wi})));
+
+const VERSE='וּסְפַרְתֶּם לָכֶם מִמָּחֳרַת הַשַּׁבָּת מִיּוֹם הֲבִיאֲכֶם אֶת עֹמֶר הַתְּנוּפָה שֶׁבַע שַׁבָּתוֹת תְּמִימֹת תִּהְיֶינָה. עַד מִמָּחֳרַת הַשַּׁבָּת הַשְּׁבִיעִת תִּסְפְּרוּ חֲמִשִּׁים יוֹם וְהִקְרַבְתֶּם מִנְחָה חֲדָשָׁה לַיְיָ.';
+const LESHEM='לְשֵׁם יִחוּד קוּדְשָׁא בְּרִיךְ הוּא וּשְׁכִינְתֵּיהּ, בִּדְחִילוּ וּרְחִימוּ, לְיַחֲד שֵׁם י"ה בו"ה בְּיִחוּדָא שְׁלִים בְּשֵׁם כָּל יִשְׂרָאֵל. ';
+const HINENI='הִנְנִי מוּכָן וּמְזֻמָּן לְקַיֵּם מִצְוַת עֲשֵׂה שֶׁל סְפִירַת הָעֹמֶר, כְּמוֹ שֶׁכָּתוּב בַּתּוֹרָה: '+VERSE+' וִיהִי נֹעַם יְיָ אֱלֹהֵינוּ עָלֵינוּ, וּמַעֲשֵׂה יָדֵינוּ כּוֹנְנָה עָלֵינוּ, וּמַעֲשֵׂה יָדֵינוּ כּוֹנְנֵהוּ.';
+const BRACHA='בָּרוּךְ אַתָּה יְיָ אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, אֲשֶׁר קִדְּשָׁנוּ בְּמִצְוֹתָיו וְצִוָּנוּ עַל סְפִירַת הָעֹמֶר.';
+const HARACHAMAN='הָרַחֲמָן הוּא יַחֲזִיר לָנוּ עֲבוֹדַת בֵּית הַמִּקְדָּשׁ לִמְקוֹמָהּ, בִּמְהֵרָה בְיָמֵינוּ, אָמֵן סֶלָה.';
+const BARUCH_SHEM='בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד.';
+const RIBONO_A='רִבּוֹנוֹ שֶׁל עוֹלָם, אַתָּה צִוִּיתָנוּ עַל יְדֵי מֹשֶׁה עַבְדֶּךָ לִסְפֹּר סְפִירַת הָעֹמֶר, כְּדֵי לְטַהֲרֵנוּ מִקְּלִפּוֹתֵינוּ וּמִטֻּמְאוֹתֵינוּ, כְּמוֹ שֶׁכָּתַבְתָּ בְּתוֹרָתֶךָ: '+VERSE+' כְּדֵי שֶׁיִּטָּהֲרוּ נַפְשׁוֹת עַמְּךָ יִשְׂרָאֵל מִזֻּהֲמָתָם. וּבְכֵן יְהִי רָצוֹן מִלְּפָנֶיךָ יְיָ אֱלֹהֵינוּ וֵאלֹהֵי אֲבוֹתֵינוּ, שֶׁבִּזְכוּת סְפִירַת הָעֹמֶר שֶׁסָּפַרְתִּי הַיּוֹם, יְתֻקַּן מַה שֶּׁפָּגַמְתִּי בִּסְפִירָה ';
+const RIBONO_B=', וְאֶטָּהֵר וְאֶתְקַדֵּשׁ בִּקְדֻשָּׁה שֶׁל מַעְלָה, וְעַל יְדֵי זֶה יֻשְׁפַּע שֶׁפַע רַב בְּכָל הָעוֹלָמוֹת, וּלְתַקֵּן אֶת נַפְשׁוֹתֵינוּ וְרוּחוֹתֵינוּ וְנִשְׁמוֹתֵינוּ מִכָּל סִיג וּפְגָם, וּלְטַהֲרֵנוּ וּלְקַדְּשֵׁנוּ בִּקְדֻשָּׁתְךָ הָעֶלְיוֹנָה, אָמֵן סֶלָה.';
+
+
+const LOCS=[
+ // ישראל
+ {id:'jlm',name:'ירושלים',lat:31.778,lng:35.235,g:'il'},{id:'bb',name:'בני ברק',lat:32.084,lng:34.834,g:'il'},
+ {id:'tlv',name:'תל אביב',lat:32.085,lng:34.781,g:'il'},{id:'hfa',name:'חיפה',lat:32.794,lng:34.989,g:'il'},
+ {id:'ash',name:'אשדוד',lat:31.804,lng:34.655,g:'il'},{id:'ntn',name:'נתניה',lat:32.321,lng:34.853,g:'il'},
+ {id:'pt',name:'פתח תקווה',lat:32.087,lng:34.887,g:'il'},{id:'rch',name:'רחובות',lat:31.894,lng:34.811,g:'il'},
+ {id:'eld',name:'אלעד',lat:32.052,lng:34.951,g:'il'},{id:'bsh',name:'בית שמש',lat:31.745,lng:34.989,g:'il'},
+ {id:'mdi',name:'מודיעין עילית',lat:31.933,lng:35.042,g:'il'},{id:'btr',name:'ביתר עילית',lat:31.697,lng:35.117,g:'il'},
+ {id:'bs',name:'באר שבע',lat:31.252,lng:34.791,g:'il'},{id:'sfd',name:'צפת',lat:32.965,lng:35.496,g:'il'},
+ {id:'tbr',name:'טבריה',lat:32.794,lng:35.531,g:'il'},{id:'kg',name:'קרית גת',lat:31.61,lng:34.764,g:'il'},
+ {id:'ntv',name:'נתיבות',lat:31.421,lng:34.588,g:'il'},{id:'ilt',name:'אילת',lat:29.558,lng:34.952,g:'il'},
+ // חו"ל
+ {id:'ny',name:'ניו יורק',lat:40.713,lng:-74.006,tz:['America/New_York','America/Detroit']},
+ {id:'lkw',name:'לייקווד',lat:40.096,lng:-74.218},
+ {id:'chi',name:'שיקגו',lat:41.878,lng:-87.63,tz:['America/Chicago']},
+ {id:'la',name:'לוס אנג\'לס',lat:34.052,lng:-118.244,tz:['America/Los_Angeles']},
+ {id:'mia',name:'מיאמי',lat:25.762,lng:-80.192},
+ {id:'tor',name:'טורונטו',lat:43.653,lng:-79.383,tz:['America/Toronto']},
+ {id:'mtl',name:'מונטריאול',lat:45.502,lng:-73.567,tz:['America/Montreal']},
+ {id:'mex',name:'מקסיקו סיטי',lat:19.433,lng:-99.133,tz:['America/Mexico_City']},
+ {id:'pan',name:'פנמה',lat:8.983,lng:-79.517,tz:['America/Panama']},
+ {id:'bue',name:'בואנוס איירס',lat:-34.604,lng:-58.382,tz:['America/Argentina/Buenos_Aires','America/Buenos_Aires']},
+ {id:'sao',name:'סאו פאולו',lat:-23.551,lng:-46.633,tz:['America/Sao_Paulo']},
+ {id:'ldn',name:'לונדון',lat:51.507,lng:-0.128,tz:['Europe/London']},
+ {id:'mnc',name:'מנצ\'סטר',lat:53.481,lng:-2.242},
+ {id:'par',name:'פריז',lat:48.857,lng:2.352,tz:['Europe/Paris']},
+ {id:'ant',name:'אנטוורפן',lat:51.219,lng:4.402,tz:['Europe/Brussels']},
+ {id:'ams',name:'אמסטרדם',lat:52.37,lng:4.895,tz:['Europe/Amsterdam']},
+ {id:'zur',name:'ציריך',lat:47.377,lng:8.541,tz:['Europe/Zurich']},
+ {id:'ber',name:'ברלין',lat:52.52,lng:13.405,tz:['Europe/Berlin']},
+ {id:'rom',name:'רומא',lat:41.903,lng:12.496,tz:['Europe/Rome']},
+ {id:'kyv',name:'קייב',lat:50.45,lng:30.523,tz:['Europe/Kiev','Europe/Kyiv']},
+ {id:'mos',name:'מוסקבה',lat:55.756,lng:37.617,tz:['Europe/Moscow']},
+ {id:'jnb',name:'יוהנסבורג',lat:-26.204,lng:28.047,tz:['Africa/Johannesburg']},
+ {id:'mel',name:'מלבורן',lat:-37.814,lng:144.963,tz:['Australia/Melbourne']},
+ {id:'syd',name:'סידני',lat:-33.869,lng:151.209,tz:['Australia/Sydney']}
+];
+
+/* ============ NUMBERS / TEXT ============ */
+const D1=['','יוֹם אֶחָד','שְׁנֵי יָמִים','שְׁלֹשָׁה יָמִים','אַרְבָּעָה יָמִים','חֲמִשָּׁה יָמִים','שִׁשָּׁה יָמִים','שִׁבְעָה יָמִים','שְׁמוֹנָה יָמִים','תִּשְׁעָה יָמִים','עֲשָׂרָה יָמִים'];
+const TEEN=['','אַחַד עָשָׂר','שְׁנֵים עָשָׂר','שְׁלֹשָׁה עָשָׂר','אַרְבָּעָה עָשָׂר','חֲמִשָּׁה עָשָׂר','שִׁשָּׁה עָשָׂר','שִׁבְעָה עָשָׂר','שְׁמוֹנָה עָשָׂר','תִּשְׁעָה עָשָׂר'];
+const UN=['','אֶחָד','שְׁנַיִם','שְׁלֹשָׁה','אַרְבָּעָה','חֲמִשָּׁה','שִׁשָּׁה','שִׁבְעָה','שְׁמוֹנָה','תִּשְׁעָה'];
+const TV={2:'וְעֶשְׂרִים',3:'וּשְׁלֹשִׁים',4:'וְאַרְבָּעִים'}, T0={2:'עֶשְׂרִים',3:'שְׁלֹשִׁים',4:'אַרְבָּעִים'};
+const WK=['','שָׁבוּעַ אֶחָד','שְׁנֵי שָׁבוּעוֹת','שְׁלֹשָׁה שָׁבוּעוֹת','אַרְבָּעָה שָׁבוּעוֹת','חֲמִשָּׁה שָׁבוּעוֹת','שִׁשָּׁה שָׁבוּעוֹת','שִׁבְעָה שָׁבוּעוֹת'];
+const RD=['','וְיוֹם אֶחָד','וּשְׁנֵי יָמִים','וּשְׁלֹשָׁה יָמִים','וְאַרְבָּעָה יָמִים','וַחֲמִשָּׁה יָמִים','וְשִׁשָּׁה יָמִים'];
+function daysWords(n){if(n<=10)return D1[n];if(n<20)return TEEN[n-10]+' יוֹם';const t=Math.floor(n/10),u=n%10;return (u?UN[u]+' '+TV[t]:T0[t])+' יוֹם';}
+function countText(n,nus){
+  const wk=Math.floor(n/7),r=n%7;
+  const wp=n>=7?'שֶׁהֵם '+WK[wk]+(r?' '+RD[r]:''):'';
+  if(nus==='em') return 'הַיּוֹם '+daysWords(n)+' לָעֹמֶר'+(wp?', '+wp:'')+'.';
+  const end=nus==='ashk'?'בָּעֹמֶר':'לָעֹמֶר';
+  return 'הַיּוֹם '+daysWords(n)+(wp?' '+wp:'')+' '+end+'.';
+}
+function shortCount(n,nus){
+  const w=Math.floor(n/7),r=n%7,D=n===1?'יום\u00A0אחד':n+'\u00A0ימים',W=w===1?'שבוע\u00A0אחד':w+'\u00A0שבועות',R=r===1?'ויום\u00A0אחד':'\u2067ו־'+r+'\u00A0ימים\u2069';
+  const wp=w?'שהם '+W+(r?' '+R:''):'';
+  if(nus==='em')return D+' לעומר'+(wp?', '+wp:'');
+  return D+(wp?' '+wp:'')+(nus==='ashk'?' בעומר':' לעומר');
+}
+function gem(n){const t=['','י','כ','ל','מ'][Math.floor(n/10)],u=['','א','ב','ג','ד','ה','ו','ז','ח','ט'][n%10];if(n===15)return 'ט"ו';if(n===16)return 'ט"ז';const s=t+u;return s.length>1?s.slice(0,-1)+'"'+s.slice(-1):s+"'";}
+function kav(n){const w=Math.floor((n-1)/7),d=(n-1)%7;return{w,d,sef:SEF[d]+' '+SEFB[w],ana:d<6?ANA[w].a[d]:acro(ANA[w].a),anaFull:acro(ANA[w].a),ps:PS_FLAT[n-1]};}
+
+/* ============ STORAGE ============ */
+const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const DEF={speed:2,nusach:'em',nikud:true,before:true,after:true,fs:1,loc:'jlm',custom:null,tzeit:'d8.5',remind:false,offset:0,theme:'auto',sim:''};
+let S=Object.assign({},DEF,store.get('omer-settings',{}));S.fs=Math.min(1.4,Math.max(.8,+S.fs||1));
+let TRACK=store.get('omer-track',{});
+const saveS=()=>store.set('omer-settings',S), saveT=()=>store.set('omer-track',TRACK);
+
+/* ============ TIME ============ */
+const now=()=>S.sim?new Date(S.sim):new Date();
+const ymd=d=>({y:d.getFullYear(),m:d.getMonth()+1,d:d.getDate()});
+const addD=(o,k)=>ymd(new Date(o.y,o.m-1,o.d+k,12));
+const rad=Math.PI/180;
+function loc(){return S.loc==='custom'&&S.custom?S.custom:(LOCS.find(l=>l.id===S.loc)||LOCS[0]);}
+function sunEvent(o,zen,rising){
+  const {lat,lng}=loc();const N=Math.round((Date.UTC(o.y,o.m-1,o.d)-Date.UTC(o.y,0,0))/864e5);
+  const lh=lng/15,t=N+((rising?6:18)-lh)/24,M=0.9856*t-3.289;
+  let L=(M+1.916*Math.sin(M*rad)+0.020*Math.sin(2*M*rad)+282.634)%360;if(L<0)L+=360;
+  let RA=Math.atan(0.91764*Math.tan(L*rad))/rad;RA=(RA+360)%360;RA+=Math.floor(L/90)*90-Math.floor(RA/90)*90;RA/=15;
+  const sd=0.39782*Math.sin(L*rad),cd=Math.cos(Math.asin(sd));
+  const ch=(Math.cos(zen*rad)-sd*Math.sin(lat*rad))/(cd*Math.cos(lat*rad));if(ch>1||ch<-1)return null;
+  let H=Math.acos(ch)/rad;if(rising)H=360-H;H/=15;
+  let T=(H+RA-0.06571*t-6.622)%24;if(T<0)T+=24;
+  return new Date(Date.UTC(o.y,o.m-1,o.d)+(T-lh)*36e5);
+}
+function tzeit(o){const m=S.tzeit;if(m[0]==='d')return sunEvent(o,90+parseFloat(m.slice(1)),false);const ss=sunEvent(o,90.833,false);return ss?new Date(ss.getTime()+parseInt(m.slice(1))*6e4):null;}
+const alot=o=>sunEvent(o,106.1,true);
+const hm=d=>d?d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}):'—';
+
+/* Hebrew calendar via Intl */
+const fmtEn=new Intl.DateTimeFormat('en-u-ca-hebrew',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'});
+const fmtHe=new Intl.DateTimeFormat('he-u-ca-hebrew',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'});
+function hebParts(o){const p={};fmtEn.formatToParts(new Date(Date.UTC(o.y,o.m-1,o.d,12))).forEach(x=>p[x.type]=x.value);return{day:parseInt(p.day),month:p.month||'',year:parseInt(p.year)};}
+const HMON={tishri:'תשרי',heshvan:'חשון',cheshvan:'חשון',kislev:'כסלו',tevet:'טבת',shevat:'שבט',adar:'אדר','adar i':'אדר א׳','adar ii':'אדר ב׳',nisan:'ניסן',iyar:'אייר',sivan:'סיון',tamuz:'תמוז',tammuz:'תמוז',av:'אב',elul:'אלול'};
+function yGem(y){let n=y%1000,s='';for(const[v,c]of[[400,'ת'],[300,'ש'],[200,'ר'],[100,'ק'],[90,'צ'],[80,'פ'],[70,'ע'],[60,'ס'],[50,'נ'],[40,'מ'],[30,'ל'],[20,'כ'],[10,'י']])while(n>=v){s+=c;n-=v;}
+  if(n===15||n===16){s+=n===15?'טו':'טז';n=0;}if(n)s+='אבגדהוזחט'[n-1];return s.length>1?s.slice(0,-1)+'"'+s.slice(-1):s+"'";}
+function hebStr(o){const h=hebParts(o),m=HMON[h.month.toLowerCase()]||h.month;return gem(h.day)+' '+m+' '+yGem(h.year);}
+function omerOf(o){const h=hebParts(o),m=h.month.toLowerCase();
+  if(m.startsWith('nis')&&h.day>=16)return h.day-15;
+  if(m.startsWith('iy'))return 15+h.day;
+  if(m.startsWith('siv')&&h.day<=5)return 44+h.day;
+  return null;}
+function nextStart(from){for(let i=0;i<420;i++){const o=addD(from,i),h=hebParts(o);if(h.month.toLowerCase().startsWith('nis')&&h.day===16)return addD(o,-1);}return null;}
+
+/* ============ STATE ============ */
+let ST={},viewDay=null,tab='sid',askedThisSession=false;
+function compute(){
+  const n=now(),t=ymd(n),tz=tzeit(t),al=alot(t);
+  let night,cur;
+  if(tz&&n>=tz){night=true;cur=addD(t,1);}else if(al&&n<al){night=true;cur=t;}else{night=false;cur=addD(t,1);}
+  const target=omerOf(cur),inProg=night?null:omerOf(t);
+  const yearDate=target?cur:(inProg?t:cur);
+  const year=hebParts(yearDate).year;
+  ST={n,t,tz,al,night,cur,target,inProg,year,nextStart:(!target&&!inProg)?nextStart(t):null};
+  if(!TRACK[year])TRACK[year]={};
+  if(viewDay===null)viewDay=target||inProg||1;
+}
+const T=()=>TRACK[ST.year];
+function pastLimit(){if(ST.target)return ST.night?ST.target-1:ST.target-2;if(ST.inProg)return ST.inProg-1;return 0;}
+function noBracha(){const lim=ST.target?ST.target-1:(ST.inProg||0);for(let k=1;k<=lim;k++)if(T()[k]==='n')return true;return false;}
+
+/* ============ RENDER ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tx(s){s=S.nikud?s.replace(/[\u0591-\u05AF\u05BD\u05C0]/g,''):s.replace(/[\u0591-\u05BD\u05BF-\u05C2\u05C4\u05C5\u05C7]/g,'');return esc(s);}
+
+function render(){
+  compute();
+  ['#fsDown','#qFsDown','#mFsDown'].forEach(i=>{const b=$(i);if(b)b.disabled=S.fs<=0.8;});
+  ['#fsUp','#qFsUp','#mFsUp'].forEach(i=>{const b=$(i);if(b)b.disabled=S.fs>=1.4;});
+  document.documentElement.style.setProperty('--fs',S.fs);
+  if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
+  $('#hebDate').textContent=(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t);
+  const L=loc();
+  let st=`<span>${esc(L.name)}</span>`;
+  if(ST.night&&ST.n<ST.al)st+=`<span>אפשר לספור בברכה עד עלות השחר <b>${hm(ST.al)}</b></span>`;
+  else st+=`<span>צאת הכוכבים ${ST.night?'היה':''} <b>${hm(ST.tz)}</b></span>`;
+  if(S.sim)st+=`<span><b>מצב תצוגה מקדימה</b></span>`;
+  $('#status').innerHTML=st;
+  renderHero();renderDedic();renderQuote();renderPanel();
+  scheduleReminder();
+  maybeAsk();
+}
+
+function renderHero(){
+  const vd=viewDay,active=ST.target,isCurrent=vd===active;
+  let when;
+  if(!active&&!ST.inProg){
+    when=ST.nextStart?`הספירה תתחיל בליל ${hebStrPlus(ST.nextStart)}`:'מחוץ לימי הספירה';
+  }else if(isCurrent)when=ST.night?'הלילה סופרים':`הערב, מ־${hm(ST.tz)}, נספור`;
+  else if(vd===ST.inProg)when='היום — נספר אמש';
+  else when='תצוגת יום';
+  $('#when').textContent=when;
+  $('#prevDay').disabled=vd<=1;$('#nextDay').disabled=vd>=49;
+  const k=kav(vd);
+  $('#dayNum').textContent=gem(vd);
+  $('#dayOf').textContent=shortCount(vd,S.nusach);$('#miniCount').innerHTML=`<b>${gem(vd)}</b><span>${esc(shortCount(vd,S.nusach))}</span>`;
+  $('#countText').innerHTML=tx(countText(vd,S.nusach));
+  $('#kSef').innerHTML=tx(k.sef);$('#kAna').innerHTML=tx(k.ana);$('#kPs').innerHTML=tx(k.ps.w);
+
+  const a=$('#actions');a.innerHTML='';
+  if(isCurrent){
+    const done=T()[vd]==='y';
+    const b=document.createElement('button');b.className='btn'+(done?' done':'');
+    b.textContent=done?'✓ הושלם':'סמן כהושלם';
+    b.onclick=()=>{T()[vd]=done?undefined:'y';if(!T()[vd])delete T()[vd];saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');};
+    a.appendChild(b);
+  }else if(active||ST.inProg){
+    const b=document.createElement('button');b.className='back-today';b.textContent='חזרה לספירה הנוכחית';
+    b.onclick=()=>{viewDay=active||ST.inProg;render();};a.appendChild(b);
+  }
+  const sh=document.createElement('button');sh.className='btn ghost small';sh.textContent='שתף';sh.onclick=()=>share(vd);a.appendChild(sh);
+
+  if((isCurrent||vd===ST.inProg)&&T()[vd]!=='y'){const at=actText(vd);if(at){const d=document.createElement('div');d.className='activity';d.style.flexBasis='100%';d.innerHTML=at;a.appendChild(d);}}
+  const y=$('#yesterday');
+  const ref=active||(ST.inProg?ST.inProg+1:null);
+  if(ref&&isCurrent){y.innerHTML=ref>1?`אתמול ספרו: <b>${tx(countText(ref-1,S.nusach).replace(/^הַיּוֹם /,'').replace(/\.$/,''))}</b>`:'זה הלילה הראשון של הספירה.';}
+  else y.innerHTML='';
+
+  let bn='';
+  if(ST.inProg&&T()[ST.inProg]!=='y'&&T()[ST.inProg]!=='n'){
+    bn+=`<div class="banner warn"><strong>האם ספרת אמש?</strong> אם שכחת — ספור היום עד השקיעה <b>בלי ברכה</b> (יום ${ST.inProg}), והערב תמשיך בברכה.${actText(ST.inProg)?'<div class="activity">'+actText(ST.inProg)+'</div>':''}
+    <div class="row" style="margin-top:8px"><button class="btn small" data-mark="${ST.inProg}:y">סמן כהושלם</button><button class="btn ghost small" data-mark="${ST.inProg}:n">לא ספרתי כלל</button></div></div>`;
+  }
+  if((active||ST.inProg)&&noBracha()){
+    bn+=`<div class="banner warn"><strong>ממשיכים לספור בלי ברכה.</strong> לפי הרשום, חסר יום שלם בספירה. נוהגים לשמוע את הברכה מהש"ץ ולענות אמן. במקרה של ספק — שאל רב.</div>`;
+  }
+  if(!active&&!ST.inProg&&ST.nextStart){
+    bn+=`<div class="banner">הספירה הבאה מתחילה במוצאי יום טוב ראשון של פסח — ${new Date(ST.nextStart.y,ST.nextStart.m-1,ST.nextStart.d).toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'})} בערב. בינתיים אפשר לעיין בכל ימי הספירה.</div>`;
+  }
+  $('#banners').innerHTML=bn;
+  $('#banners').querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>{const[d,v]=b.dataset.mark.split(':');T()[d]=v;saveT();render();});
+}
+function hebStrPlus(o){return hebStr(addD(o,1));}
+
+
+function renderPanel(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  const p=$('#panel');
+  $('#autobar').hidden=tab!=='sid';if(tab!=='sid'){stopAuto();autoMode=false;}
+  if(tab==='sid'){p.innerHTML=siddurHTML();p.querySelectorAll('details.grp').forEach(d=>d.addEventListener('toggle',()=>{S[d.dataset.g]=d.open;saveS();}));const f=$('#finishBtn');if(f)f.onclick=()=>{T()[viewDay]='y';saveT();render();toast('נרשם כהושלם');};}else if(tab==='men')p.innerHTML=menorahHTML();else{p.innerHTML=trackerHTML();bindTracker();}
+}
+
+function siddurHTML(){
+  const n=viewDay,k=kav(n);let h='<div class="sid">';
+  const grp=(key,title,inner)=>`<details class="grp" data-g="${key}" ${S[key]!==false?'open':''}><summary><span>${title}</span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>${inner}</details>`;
+  if(S.before){
+    const open=S.nusach==='ashk'?HINENI:LESHEM+HINENI;
+    h+=grp('openBefore','לפני הספירה',`<section><h3>${S.nusach==='ashk'?'הכנה':'לשם יחוד'}</h3><p>${tx(open)}</p></section>`);
+  }
+  h+=`<section><h3>ברכה</h3><p class="blessing">${tx(BRACHA)}</p>${noBracha()?'<div class="note">הושמטה ברכה? — לפי הרשום ממשיכים בלי ברכה.</div>':''}</section>`;
+  h+=`<section><h3>הספירה</h3><p class="countline">${tx(countText(n,S.nusach))}</p><div class="note">כוונה: ${tx(k.sef)}</div><p class="blessing" style="margin-top:10px">${tx(HARACHAMAN)}</p></section>`;
+  if(S.after){ let a='';
+    // Psalm 67
+    let ps=`<b>${tx(PS_TITLE)}</b> `;
+    PS.forEach((v,vi)=>{ps+=v.map((w,wi)=>{const idx=PS_FLAT.findIndex(x=>x.vi===vi&&x.wi===wi)+1;return idx===n?`<span class="hl">${tx(w)}</span>`:tx(w);}).join(' ')+'. ';});
+    a+=`<section id="psSec"><h3 class="h3row">למנצח (תהלים סז)<button class="linkbtn" id="toMenorah"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v16M6 20h12M5 5v3a7 7 0 0 0 14 0V5M8.5 5v3a3.5 3.5 0 0 0 7 0V5"/></svg>בצורת המנורה</button></h3><p>${ps}</p><div class="note">מכוונים למילה <span class="hl-soft">${tx(k.ps.w)}</span> — המילה ה־${n} במזמור.</div></section>`;
+    // Ana Bekoach
+    let an='';
+    ANA.forEach((l,li)=>{
+      const on=li===k.w;
+      const ac=l.a.map((c,ci)=>`<span class="l${on&&(k.d===6||ci===k.d)?' on':''}">${c}</span>`);
+      const acrS=ac[0]+ac[1]+'"'+ac[2]+' '+ac[3]+ac[4]+'"'+ac[5];
+      const words=l.w.map((w,wi)=>{
+        const t=tx(w);
+        if(on&&k.d<6&&wi===k.d)return `<span class="hl"><span class="firstl">${t.match(/^[\u05D0-\u05EA][\u0591-\u05C7]*/)[0]}</span>${t.replace(/^[\u05D0-\u05EA][\u0591-\u05C7]*/,'')}</span>`;
+        return t;}).join(' ');
+      an+=`<div class="ana-line${on?' on':''}"><span class="acr">${acrS}</span><span class="txt">${on&&k.d===6?`<span class="hl">${words}</span>`:words}</span></div>`;
+    });
+    an+=`<div class="ana-line"><span class="acr">בשכמל"ו</span><span class="txt">${tx(BARUCH_SHEM)} <small class="note">(בלחש)</small></span></div>`;
+    a+=`<section><h3>אנא בכח</h3>${an}<div class="note">שבוע ${gem(k.w+1)}: שם ${tx(k.anaFull)}. ${k.d<6?'הלילה מכוונים לאות '+tx(k.ana):'ביום השביעי מכוונים לשם כולו'}.</div></section>`;
+    a+=`<section><h3>רבונו של עולם</h3><p>${tx(RIBONO_A)}<span class="hl">${tx(k.sef)}</span>${tx(RIBONO_B)}</p></section>`;
+    h+=grp('openAfter','אחרי הספירה',a);
+  }
+  if((n===ST.target||n===ST.inProg)&&T()[n]!=='y')h+=`<div class="finish"><button class="btn" id="finishBtn">סיימתי — סמן כהושלם</button></div>`;
+  return h+'</div>';
+}
+
+function menorahHTML(){
+  // הגיאומטריה מחושבת לפי גודל הטקסט: הענפים צפופים יותר והמנורה מתארכת לגובה, כך שהיא תמיד ברוחב המסך
+  // גודל הטקסט במנורה ביחס ישר לגודל הברכה. היחס נקבע לפי רוחב המסך, כדי שהמנורה תישאר תמיד בעמוד אחד.
+  const n=viewDay,k=kav(n),FS=19,SFS=17,TFS=30,FFS=FS;
+  const cw=Math.max(260,($('#panel').clientWidth||360)-36),BL=1.3*17,bl=BL*S.fs;
+  const ratio=Math.min(.9,(FS*cw/352)/(BL*1.4)),D=ratio*bl;   // היחס נבחר כך שגם בגודל המרבי המנורה נכנסת ברוחב
+  const STEP=Math.min(78,Math.max(40,(FS*cw/D/2-56)/3));
+  const R3=3*STEP,SIDEX=R3+38,VBW=2*(SIDEX+18),CX=VBW/2,svgW=Math.min(cw,VBW*D/FS);
+  const OFF=[-3,-2,-1,0,1,2,3]; // פסוק ב' בקנה השמאלי ... פסוק ח' בקנה הימני, כמו בציור
+  const FRAG={3:'לַמְנַ',2:'צֵּחַ בִּ',1:'נְגִי',0:'נֹת','-1':'מִזְ','-2':'מוֹר','-3':'שִׁיר'};
+  const est=w=>w.replace(/[\u0591-\u05C7]/g,'').length*FS*0.6;
+  const need=list=>list.reduce((x,w)=>x+est(w),0)*1.22;
+  const END=36; // רווח בסוף הקשת, לפני המפגש עם הגזע
+  let L=180;
+  PS.forEach((v,vi)=>{const r=Math.abs(OFF[vi])*STEP;
+    L=Math.max(L,vi===3?need(v.slice(0,7))-R3-10:need(v)-(Math.PI/2*r-END));});
+  const TOP=TFS+22+FFS+34,Y0=TOP+L,STEM=Y0+R3+10;
+  let chan='',words='',frags='',idx=0,base='';
+  PS.forEach((v,vi)=>{
+    const o=OFF[vi]*STEP,r=Math.abs(o),side=Math.sign(o),on=vi===k.ps.vi;
+    let list=v,len,d,pos;
+    if(o===0){list=v.slice(0,7);len=STEM-TOP;d=`M${CX} ${TOP} V${STEM}`;pos=s=>({x:CX,y:TOP+s,tx:0,ty:1});}
+    else{const x0=CX+o;len=L+Math.PI/2*r-END;
+      d=`M${x0} ${TOP} V${Y0} A${r} ${r} 0 0 ${side>0?1:0} ${CX} ${Y0+r}`;
+      pos=s=>{if(s<=L)return{x:x0,y:TOP+s,tx:0,ty:1};const th=(s-L)/r;return{x:CX+side*r*Math.cos(th),y:Y0+r*Math.sin(th),tx:-side*Math.sin(th),ty:Math.cos(th)};};}
+    chan+=`<path class="chan${on?' on':''}" d="${d}"/>`;
+    frags+=`<text class="mfrag" x="${CX+o}" y="${TOP-24}" text-anchor="middle" direction="rtl">${tx(FRAG[OFF[vi]])}</text>`;
+    const ws=list.map(est),gap=(len-ws.reduce((x,y)=>x+y,0))/list.length;let s=gap/2;
+    list.forEach((w,i)=>{idx++;const c=pos(s+ws[i]/2);s+=ws[i]+gap;
+      const ang=Math.atan2(-c.ty,-c.tx)*180/Math.PI,cls=idx===n?'today':idx<n?'past':'';
+      words+=`<g transform="translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${ang.toFixed(1)})">${idx===n?`<rect class="tbg" x="${(-ws[i]/2-6).toFixed(1)}" y="${(-FS*.85).toFixed(1)}" width="${(ws[i]+12).toFixed(1)}" height="${(FS*1.75).toFixed(1)}" rx="8"/>`:''}<text class="mw ${cls}" text-anchor="middle" dominant-baseline="central" direction="rtl">${tx(w)}</text></g>`;});
+    if(o===0){base=v.slice(7).map(w=>{idx++;return `<tspan class="mw ${idx===n?'today-t':idx<n?'past':''}">${tx(w)}</tspan>`;}).join(' ');}
+  });
+  // שמות אנא בכח משני צדי המנורה, כמו בציור: א–ד בצד ימין (מלמעלה למטה), ה–ז בצד שמאל (מלמטה למעלה)
+  let side='';const rw=SFS*5.8,rh=SFS*1.9;
+  const col=(x,items,down)=>{const sh=(STEM-TOP)/items.length;items.forEach((it,j)=>{const y=down?TOP+sh*j+sh/2:STEM-sh*j-sh/2;
+    side+=`<g transform="translate(${x} ${y.toFixed(1)}) rotate(${down?-90:90})">${it.on?`<rect class="tbg soft" x="${(-rw/2).toFixed(1)}" y="${(-rh/2).toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="8"/>`:''}<text class="mside${it.on?' on':''}" text-anchor="middle" dominant-baseline="central" direction="rtl">${it.h||tx(it.t)}</text></g>`;});};
+  const A=i=>{const on=i===k.w,a=ANA[i].a,L=j=>`<tspan class="${on&&(k.d===6||j===k.d)?'lon':''}">${a[j]}</tspan>`;
+    return {h:L(0)+L(1)+'"'+L(2)+' '+L(3)+L(4)+'"'+L(5),on};};
+  col(CX+SIDEX,[A(0),A(1),A(2),A(3)],true);
+  col(CX-SIDEX,[A(4),A(5),A(6),{t:'בשכמל"ו',on:false}],false);
+  const bw=Math.min(VBW/2-40,Math.max(110,need(PS[3].slice(7))/2+14)),bh=38+FS,VBH=STEM+6+bh+14;
+  const svg=`<svg class="menorah" viewBox="0 0 ${VBW} ${VBH.toFixed(0)}" role="img" aria-label="מזמור למנצח בצורת המנורה" style="width:${svgW.toFixed(0)}px;margin:0 auto;--mfs:${FS}px;--msfs:${SFS}px;--mtfs:${TFS}px;--mffs:${FFS}px;--mcw:32px">
+    <text class="mtop" x="${CX}" y="${(TFS+8).toFixed(1)}" text-anchor="middle" direction="rtl">${tx('שִׁוִּיתִי ה׳ לְנֶגְדִּי תָמִיד')}</text>
+    ${chan}<path class="mbase" d="M${CX-bw} ${STEM+6} H${CX+bw} L${CX+bw+35} ${STEM+6+bh} H${CX-bw-35} Z"/>
+    ${frags}${words}${side}
+    <text x="${CX}" y="${(STEM+6+bh/2).toFixed(1)}" text-anchor="middle" dominant-baseline="central" direction="rtl">${base}</text></svg>`;
+  return `${sidReturn!==null?'<div class="backrow"><button class="linkbtn" id="backToSid"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>חזרה לנוסח</button></div>':''}<div class="men-scroll">${svg}</div>
+  <div class="men-caption">יום ${gem(n)}: <b>${tx(k.ps.w)}</b> · ${tx(k.sef)} · ${tx(k.ana)}</div>
+  <div class="note" style="text-align:center">כל קנה הוא פסוק, מפסוק ב׳ בקנה השמאלי ועד פסוק ח׳ בימני. בקנה האמצעי "ישמחו וירננו", וסופו כתוב על הבסיס. המילים שכבר נספרו בזהב.</div>`;
+}
+
+function trackerHTML(){
+  const cur=ST.target||(ST.inProg?ST.inProg+1:null);
+  let h='<div class="grid">';
+  for(let w=0;w<7;w++){
+    h+=`<div class="wk">${tx(SEF[w])}</div>`;
+    for(let d=1;d<=7;d++){const n=w*7+d,s=T()[n];const fut=!cur||n>cur;
+      h+=`<button class="cell${s?' '+s:''}${fut?' fut':''}${n===ST.target?' tonight':''}" data-n="${n}" ${fut?'aria-disabled="true"':''} aria-label="יום ${n}">${gem(n).replace(/["']/g,'')}</button>`;}
+  }
+  h+='</div>';
+  const vals=Object.values(T());const y=vals.filter(v=>v==='y').length,no=vals.filter(v=>v==='n').length;
+  const lim=pastLimit();let unk=0;for(let i=1;i<=lim;i++)if(!T()[i])unk++;
+  h+=`<div class="legend"><span><i class="y"></i>ספרתי</span><span><i class="n"></i>לא ספרתי</span><span><i></i>לא סומן</span></div>`;
+  h+=`<div class="stats">ספרת ${y} ימים${no?`, חסרו ${no}`:''}.${unk?` <button class="back-today" id="openAsk">${unk} ימים לא סומנו — סמן עכשיו</button>`:''}</div>`;
+  h+=`<div class="note">הקש על יום קודם כדי לשנות את הסימון. לחיצה ארוכה פותחת את היום בתצוגה.</div>`;
+  return h+hesedHTML();
+}
+function bindTracker(){
+  const cur=ST.target||(ST.inProg?ST.inProg+1:null);
+  document.querySelectorAll('.cell').forEach(c=>{
+    const n=+c.dataset.n;let t;
+    c.onpointerdown=()=>{t=setTimeout(()=>{t=null;viewDay=n;tab='sid';render();window.scrollTo({top:0,behavior:'smooth'});},550);};
+    c.onpointerup=c.onpointerleave=()=>{if(t)clearTimeout(t);};
+    c.onclick=()=>{if(t===null)return;if(!cur||n>cur)return;const s=T()[n];T()[n]=s==='y'?'n':s==='n'?undefined:'y';if(!T()[n])delete T()[n];saveT();render();};
+  });
+  const oa=$('#openAsk');if(oa)oa.onclick=()=>openAsk(true);
+}
+
+/* ============ ASK FOR MISSED DAYS ============ */
+let askSel={};
+function unknownDays(){const lim=pastLimit(),r=[];for(let i=1;i<=lim;i++)if(!T()[i])r.push(i);return r;}
+function maybeAsk(){if(askedThisSession)return;if(unknownDays().length){askedThisSession=true;setTimeout(()=>openAsk(false),400);}}
+function openAsk(){
+  const days=unknownDays();if(!days.length)return;askSel={};
+  $('#askList').innerHTML=days.map(d=>`<div class="ask-item"><span>יום ${gem(d)} <small class="note">(${d})</small>${actShort(d)}</span><span class="seg"><button data-d="${d}" data-v="y">ספרתי</button><button data-d="${d}" data-v="n">לא ספרתי</button></span></div>`).join('');
+  $('#askList').querySelectorAll('button').forEach(b=>b.onclick=()=>{askSel[b.dataset.d]=b.dataset.v;b.parentNode.querySelectorAll('button').forEach(x=>x.className='');b.className='sel-'+b.dataset.v;});
+  const dlg=$('#ask');if(!dlg.open)dlg.showModal();
+}
+$('#askAllYes').onclick=()=>{unknownDays().forEach(d=>T()[d]='y');saveT();$('#ask').close();render();};
+$('#askLater').onclick=()=>$('#ask').close();
+$('#askSave').onclick=()=>{Object.entries(askSel).forEach(([d,v])=>T()[d]=v);saveT();$('#ask').close();render();};
+
+/* ============ REMINDERS ============ */
+let remT=null;
+function nextReminder(){const n=now();let tz=tzeit(ST.t);if(!tz||n>=tz)tz=tzeit(addD(ST.t,1));return tz?new Date(tz.getTime()+S.offset*6e4):null;}
+function scheduleReminder(){
+  if(remT)clearTimeout(remT);if(!S.remind||S.sim)return;
+  const at=nextReminder();if(!at)return;const ms=at-new Date();
+  if(ms>0&&ms<864e5)remT=setTimeout(()=>{
+    compute();const d=ST.target;if(!d||T()[d]==='y')return;
+    const body=countText(d,S.nusach).replace(/[\u0591-\u05C7]/g,'');
+    try{if('Notification'in window&&Notification.permission==='granted')new Notification('ספירת העומר — הגיע הזמן',{body});else toast('הגיע הזמן לספור: '+body);}catch(e){toast('הגיע הזמן לספור');}
+    render();
+  },ms);
+}
+
+/* ============ SHARE / TOAST ============ */
+async function share(n){const k=kav(n);const text=`${countText(n,S.nusach)}\n${k.sef}\n`.replace(/[\u0591-\u05C7]/g,'');
+  try{if(navigator.share){await navigator.share({text});return;}await navigator.clipboard.writeText(text);toast('הטקסט הועתק');}catch(e){toast('לא ניתן לשתף ממכשיר זה');}}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ============ SETTINGS UI ============ */
+function fillSettings(){
+  $('#sNusach').value=S.nusach;$('#sNikud').checked=S.nikud;$('#sBefore').checked=S.before;$('#sAfter').checked=S.after;
+  const opt=l=>`<option value="${l.id}">${l.name}</option>`;
+  $('#sLoc').innerHTML=(S.custom?`<option value="custom">${esc(S.custom.name)}</option>`:'')+`<optgroup label="ישראל">${LOCS.filter(l=>l.g==='il').map(opt).join('')}</optgroup><optgroup label="חוץ לארץ">${LOCS.filter(l=>l.g!=='il').map(opt).join('')}</optgroup>`;
+  $('#sLoc').value=S.loc;$('#sTzeit').value=S.tzeit;$('#sRemind').checked=S.remind;$('#sOffset').value=S.offset;$('#sTheme').value=S.theme;$('#sSim').value=S.sim||'';
+}
+const bindS=(id,key,fn=v=>v)=>$(id).addEventListener('change',e=>{S[key]=fn(e.target.type==='checkbox'?e.target.checked:e.target.value);saveS();render();});
+bindS('#sNusach','nusach');bindS('#sNikud','nikud');bindS('#sBefore','before');bindS('#sAfter','after');bindS('#sLoc','loc');bindS('#sTzeit','tzeit');
+bindS('#sOffset','offset',v=>Math.max(0,parseInt(v)||0));bindS('#sTheme','theme');
+$('#sSim').addEventListener('change',e=>{S.sim=e.target.value;saveS();viewDay=null;askedThisSession=false;render();});
+$('#sRemind').addEventListener('change',async e=>{
+  S.remind=e.target.checked;saveS();
+  if(S.remind&&'Notification'in window&&Notification.permission==='default'){try{await Notification.requestPermission();}catch(err){}}
+  if(S.remind){const at=nextReminder();toast(at?'תזכורת הבאה: '+at.toLocaleString('he-IL',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'התזכורת הופעלה');}
+  render();
+});
+$('#fsUp').onclick=()=>{S.fs=Math.min(1.4,+(S.fs+.1).toFixed(1));saveS();render();};
+$('#fsDown').onclick=()=>{S.fs=Math.max(.8,+(S.fs-.1).toFixed(1));saveS();render();};
+// איתור מיקום: GPS כשהוא זמין; אחרת (למשל כשהדפדפן או המסגרת חוסמים) — לפי אזור הזמן של המכשיר
+function nearest(lat,lng){let best=null,bd=1e9;LOCS.forEach(l=>{const d=Math.hypot(l.lat-lat,(l.lng-lng)*Math.cos(lat*rad));if(d<bd){bd=d;best=l;}});return {l:best,km:bd*111};}
+function byTimezone(){let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(e){}
+  if(tz==='Asia/Jerusalem'||tz==='Asia/Tel_Aviv')return LOCS[0];return LOCS.find(l=>(l.tz||[]).includes(tz))||null;}
+function tzFallback(reason){const l=byTimezone();
+  if(l){S.loc=l.id;saveS();fillSettings();render();toast(`${reason} נבחרה ${l.name} לפי אזור הזמן — אפשר לדייק מהרשימה`);}
+  else toast(`${reason} בחר עיר מהרשימה`);}
+$('#geo').onclick=()=>{
+  if(!navigator.geolocation){tzFallback('איתור GPS לא זמין במכשיר.');return;}
+  const btn=$('#geo');btn.disabled=true;btn.textContent='מאתר…';let done=false;
+  const finish=()=>{done=true;btn.disabled=false;btn.textContent='אתר אותי';};
+  const guard=setTimeout(()=>{if(!done){finish();tzFallback('האיתור לא הגיב.');}},10000);
+  try{navigator.geolocation.getCurrentPosition(p=>{if(done)return;clearTimeout(guard);finish();
+      const {latitude:lat,longitude:lng}=p.coords,nr=nearest(lat,lng);
+      S.custom={name:nr.km<25?`המיקום שלי (${nr.l.name})`:'המיקום שלי',lat,lng};S.loc='custom';saveS();fillSettings();render();toast('המיקום עודכן');},
+    e=>{if(done)return;clearTimeout(guard);finish();tzFallback(e&&e.code===1?'אין הרשאת מיקום.':'לא ניתן לאתר כרגע.');},
+    {enableHighAccuracy:false,timeout:9000,maximumAge:600000});}
+  catch(e){clearTimeout(guard);finish();tzFallback('איתור GPS חסום כאן.');}
+};
+// חלון אישור פנימי — חלונות confirm של הדפדפן חסומים בתוך ה־artifact ובחלק מאפליקציות ה־PWA
+function appConfirm(title,msg,yes){return new Promise(res=>{const d=$('#confirmDlg');$('#cfTitle').textContent=title;$('#cfMsg').textContent=msg;$('#cfYes').textContent=yes;
+  const done=v=>{d.close();res(v);};$('#cfYes').onclick=()=>done(true);$('#cfNo').onclick=()=>done(false);
+  d.onclick=e=>{if(e.target===d)done(false);};d.oncancel=e=>{e.preventDefault();done(false);};d.showModal();});}
+$('#resetData').onclick=async()=>{if(!await appConfirm('מחיקת נתוני המעקב','יימחקו הימים שסומנו, רישומי הקריאה, השמות שהזכרת בתפילה והנקודות. ההגדרות יישמרו.','מחק הכל'))return;
+  TRACK={};saveT();
+  for(const k in ACT)delete ACT[k];store.set('omer-activity',ACT);
+  for(const k in PRAY)delete PRAY[k];store.set('omer-prayed',PRAY);
+  try{localStorage.removeItem('omer-shown');}catch(e){}
+  for(const k in sessSeen)delete sessSeen[k];dIdx=null;askedThisSession=false;
+  $('#settings').close();render();toast('נתוני המעקב נמחקו');};
+$('#openSettings').onclick=()=>{fillSettings();$('#settings').showModal();};
+$('#closeSettings').onclick=()=>$('#settings').close();
+
+/* ============ READING ACTIVITY ============ */
+let ACT=store.get('omer-activity',{});const sessSeen={};
+function scrollPct(){const r=$('#panel').getBoundingClientRect();if(r.height<=0)return 0;return Math.max(0,Math.min(100,(innerHeight-r.top)/r.height*100));}
+function fmtDur(s){if(s<60)return s+' שניות';const m=Math.floor(s/60),r=s%60;return m+(m===1?' דקה':' דקות')+(r>=10?' ו־'+r+' שניות':'');}
+function actOf(d){return (ACT[ST.year]||{})[d];}
+function actText(d){const a=actOf(d);if(!a||a.sec<10)return '';
+  return `לפי רישומי האפליקציה פתחת את סדר הספירה ליום ${gem(d)}${a.opens>1?' '+a.opens+' פעמים, לראשונה':''} בשעה <b>${hm(new Date(a.first))}</b>, שהית בו <b>${fmtDur(a.sec)}</b> וגללת עד <b>${Math.round(a.scroll)}%</b> מהנוסח. אם קראת — סמן כהושלם.`;}
+function actShort(d){const a=actOf(d);return a&&a.sec>=10?`<br><small class="note">נרשמה פתיחה ב־${hm(new Date(a.first))}, ${fmtDur(a.sec)}, ${Math.round(a.scroll)}% גלילה</small>`:'';}
+setInterval(()=>{
+  if(tab!=='sid'||document.hidden||!ST.year)return;const d=viewDay;if(d!==ST.target&&d!==ST.inProg)return;
+  const y=ACT[ST.year]=ACT[ST.year]||{};const a=y[d]=y[d]||{first:Date.now(),sec:0,scroll:0,opens:0};
+  if(!sessSeen[d]){sessSeen[d]=1;a.opens++;}
+  a.sec++;a.last=Date.now();a.scroll=Math.max(a.scroll,scrollPct());
+  if(a.sec%5===0)store.set('omer-activity',ACT);
+  if(a.sec===10||a.sec%30===0)renderHero();
+},1000);
+
+/* ============ AUTO SCROLL ============ */
+let autoOn=false,autoMode=false,touching=false,lastT=0,acc=0;
+const SPEEDS=[14,28,50,85,150],SPNAME=['איטי מאוד','איטי','בינוני','מהיר','מהיר מאוד'];
+S.speed=Math.min(5,Math.max(1,S.speed|0||2));
+function paintAuto(){$('#autoPlay').innerHTML=autoOn?'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>':'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5v14l11-7z"/></svg>';$('#autoPlay').setAttribute('aria-label',autoOn?'עצור גלילה':'התחל גלילה אוטומטית');$('#autoSpeed').textContent=SPNAME[S.speed-1];$('#autoSlow').disabled=S.speed<=1;$('#autoFast').disabled=S.speed>=5;document.querySelector('.spd').setAttribute('aria-valuenow',S.speed);document.querySelector('.spd').setAttribute('aria-valuetext',SPNAME[S.speed-1]);document.querySelector('.spd').hidden=!autoOn;}
+function loop(t){if(!autoOn)return;if(lastT&&!touching){acc+=(t-lastT)/1000*SPEEDS[S.speed-1];const px=Math.floor(acc);if(px){window.scrollBy(0,px);acc-=px;}}lastT=t;
+  if(innerHeight+scrollY>=document.documentElement.scrollHeight-2){stopAuto();autoMode=false;toast('הגעת לסוף הנוסח');return;}requestAnimationFrame(loop);}
+function startAuto(){autoOn=true;autoMode=true;lastT=0;acc=0;const r=$('#panel').getBoundingClientRect();if(r.top>innerHeight*.5)window.scrollTo({top:scrollY+r.top-70});paintAuto();requestAnimationFrame(loop);}
+function stopAuto(){autoOn=false;paintAuto();}
+$('#autoPlay').onclick=()=>autoOn?stopAuto():startAuto();
+const setSpeed=v=>{v=Math.min(5,Math.max(1,v));if(v!==S.speed){S.speed=v;saveS();paintAuto();}};
+let spDrag=null,spMoved=false;
+$('#autoSlow').onclick=()=>{if(!spMoved)setSpeed(S.speed-1);};
+$('#autoFast').onclick=()=>{if(!spMoved)setSpeed(S.speed+1);};
+// החלקה על אזור המהירות: כל ~28 פיקסלים = לחיצה אחת על + או −. בעברית + משמאל, לכן החלקה שמאלה מאיצה.
+const spd=document.querySelector('.spd');
+spd.addEventListener('pointerdown',e=>{spDrag={x:e.clientX,v:S.speed,id:e.pointerId};spMoved=false;});
+spd.addEventListener('pointermove',e=>{if(!spDrag)return;const dx=spDrag.x-e.clientX;if(Math.abs(dx)>6&&!spMoved){spMoved=true;spd.classList.add('drag');try{spd.setPointerCapture(spDrag.id);}catch(_){}}
+  if(spMoved)setSpeed(spDrag.v+Math.round(dx/28));});
+const spEnd=()=>{spDrag=null;spd.classList.remove('drag');setTimeout(()=>spMoved=false,0);};
+spd.addEventListener('pointerup',spEnd);spd.addEventListener('pointercancel',spEnd);
+spd.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowUp'){setSpeed(S.speed+1);e.preventDefault();}if(e.key==='ArrowRight'||e.key==='ArrowDown'){setSpeed(S.speed-1);e.preventDefault();}});
+// גלילה ידנית לא עוצרת — ממשיכים מהמיקום החדש. בזמן מגע האצבע הגלילה האוטומטית ממתינה.
+window.addEventListener('touchstart',e=>{if(!e.target.closest('.autobar'))touching=true;},{passive:true});
+window.addEventListener('touchend',()=>touching=false,{passive:true});
+window.addEventListener('touchcancel',()=>touching=false,{passive:true});
+// הקשה על המסך במצב גלילה = לחיצה על כפתור ההפעלה/עצירה
+let tapStart=null;
+document.addEventListener('pointerdown',e=>{if(autoOn&&!e.target.closest('.autobar')&&e.target.closest('button,a,input,select,textarea,summary,.tabs,.dedic'))stopAuto();tapStart=(autoMode&&tab==='sid'&&!e.target.closest('button,a,input,select,textarea,summary,dialog,.autobar,.tabs,.dedic,.mini'))?{x:e.clientX,y:e.clientY,t:Date.now()}:null;});
+document.addEventListener('pointerup',e=>{if(!tapStart)return;const m=Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y),dt=Date.now()-tapStart.t;tapStart=null;
+  if(m<10&&dt<350){if(autoOn){stopAuto();toast('הגלילה נעצרה — הקש שוב להמשך');}else startAuto();}});
+paintAuto();
+
+/* ============ DEDICATIONS & QUOTES (shared db) ============ */
+let DB=null,DEDS=[],QUOTES=[],STATS={},dIdx=null,dedLoaded=false;
+const PRAY=store.get('omer-prayed',{});
+const todayKey=()=>{const t=ymd(new Date());return t.y+'-'+t.m+'-'+t.d;};
+function shownList(){let s=store.get('omer-shown',{});if(s.date!==todayKey())s={date:todayKey(),ids:[]};s.ids=s.ids.filter(id=>DEDS.some(d=>d.id===id));return s;}
+function addShown(){const s=shownList();const fresh=DEDS.filter(d=>!s.ids.includes(d.id)&&!PRAY[d.id]);const pool=fresh.length?fresh:DEDS.filter(d=>!s.ids.includes(d.id));
+  if(!pool.length)return false;const d=pool[Math.floor(Math.random()*pool.length)];s.ids.push(d.id);store.set('omer-shown',s);dIdx=s.ids.length-1;bump(d.id,{shown:1});return true;}
+const bq={};
+function bump(id,f){if(!DB)return;bq[id]=(bq[id]||Promise.resolve()).then(async()=>{
+  const ref=DB.doc('stats/'+id),snap=await ref.get(),nx=JSON.parse(JSON.stringify(snap.exists?snap.data():{}));
+  for(const[k,v]of Object.entries(f)){if(k==='hour'){nx.hours=nx.hours||{};nx.hours[v]=(nx.hours[v]||0)+1;}else nx[k]=(nx[k]||0)+v;}
+  nx.updated=new Date().toISOString();await ref.set(nx);}).catch(()=>{});}
+function curDed(){const s=shownList();if(!s.ids.length)return null;if(dIdx===null||dIdx>=s.ids.length)dIdx=s.ids.length-1;return DEDS.find(d=>d.id===s.ids[dIdx]);}
+function renderDedic(){
+  const box=$('#dedic');
+  if(!DB||!DEDS.length){box.hidden=!dedLoaded||!DEDS.length;if(!dedLoaded)box.hidden=true;return;}
+  box.hidden=false;
+  if(!shownList().ids.length)addShown();
+  const d=curDed();if(!d){box.hidden=true;return;}
+  const s=shownList(),prayed=PRAY[d.id],cnt=(STATS[d.id]&&STATS[d.id].prayed)||0;
+  box.innerHTML=`<div class="ded-top"><span>הספירה הלילה מוקדשת</span>${s.ids.length>1?`<span class="dn"><button id="dPrev" aria-label="השם הקודם" ${dIdx<=0?'disabled':''}><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg></button>${dIdx+1}/${s.ids.length}<button id="dNext" aria-label="השם הבא" ${dIdx>=s.ids.length-1?'disabled':''}><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg></button></span>`:''}</div>
+    <div class="ded-purpose">${esc(d.purpose||'')}</div><div class="ded-name">${esc(d.name||'')}</div>
+    <div class="ded-count">${cnt?`<b>${cnt}</b> ${cnt===1?'מתפלל הזכיר':'מתפללים הזכירו'} את ${esc(d.name)} בתפילתם`:'היה הראשון להזכיר בתפילתך'}</div>
+    <div class="ded-actions">${prayed?`<button class="btn locked" disabled>✓ הזכרת בתפילתך</button>`:`<button class="btn" id="dPray">הזכרתי בתפילתי</button>`}<button class="btn ghost" id="dMore">עוד שם</button></div>
+    <div class="ded-thanks" id="dThanks">${prayed?'תודה. שתתקבל תפילתך ברצון':''}</div>${prayed?'<button class="back-today" id="dUndo">ביטול הסימון</button>':''}`;
+  const pv=$('#dPrev'),nv=$('#dNext');if(pv)pv.onclick=()=>{flushDwell();dIdx--;renderDedic();};if(nv)nv.onclick=()=>{flushDwell();dIdx++;renderDedic();};
+  $('#dMore').onclick=()=>{flushDwell();bump(d.id,{more:1});if(!addShown())toast('הוצגו כל השמות להיום');renderDedic();};
+  const pb=$('#dPray');if(pb)pb.onclick=()=>pray(d,pb);
+  const ub=$('#dUndo');if(ub)ub.onclick=()=>{delete PRAY[d.id];store.set('omer-prayed',PRAY);bump(d.id,{prayed:-1,undo:1});
+    STATS[d.id]=Object.assign({},STATS[d.id],{prayed:Math.max(0,((STATS[d.id]&&STATS[d.id].prayed)||1)-1)});renderDedic();if(tab==='trk')renderPanel();toast('הסימון בוטל');};
+}
+function pray(d,btn){
+  PRAY[d.id]={ts:Date.now(),name:d.name,purpose:d.purpose||''};store.set('omer-prayed',PRAY);
+  bump(d.id,{prayed:1,hour:String(new Date().getHours())});
+  STATS[d.id]=Object.assign({},STATS[d.id],{prayed:((STATS[d.id]&&STATS[d.id].prayed)||0)+1});
+  const box=$('#dedic'),br=btn.getBoundingClientRect(),bx=box.getBoundingClientRect();
+  renderDedic();
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    box.classList.remove('glow');void box.offsetWidth;box.classList.add('glow');
+    for(let i=0;i<22;i++){const sp=document.createElement('span');sp.className='spark';
+      sp.style.left=(br.left-bx.left+br.width*Math.random())+'px';sp.style.top=(br.top-bx.top+br.height/2)+'px';
+      sp.style.setProperty('--dx',(Math.random()*80-40)+'px');sp.style.animationDelay=(Math.random()*.6)+'s';
+      box.appendChild(sp);setTimeout(()=>sp.remove(),2600);}
+  }
+  const n=Object.keys(PRAY).length;toast(n===1?'קיבלת תג: נר ראשון 🕯️':'+10 נקודות חסד');
+}
+/* display duration of the dedication card */
+let dwell=0,dedVisible=false;
+new IntersectionObserver(es=>es.forEach(e=>dedVisible=e.isIntersecting&&e.intersectionRatio>=.5),{threshold:[0,.5,1]}).observe($('#dedic'));
+setInterval(()=>{if(dedVisible&&!document.hidden&&DEDS.length)dwell++;if(dwell>=20)flushDwell();},1000);
+function flushDwell(){const d=curDed();if(d&&dwell>0)bump(d.id,{dwellSec:dwell});dwell=0;}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushDwell();});
+function renderQuote(){const q=$('#quote');if(!QUOTES.length){q.innerHTML='';return;}const x=QUOTES[(viewDay-1)%QUOTES.length];q.innerHTML=`${esc(x.text)} ${x.source?`<small>(${esc(x.source)})</small>`:''}`;}
+(async()=>{
+  try{DB=window.claude&&window.claude.use?await window.claude.use('db'):null;}catch(e){DB=null;}
+  if(!DB){dedLoaded=true;renderDedic();return;}
+  DB.collection('dedications').onSnapshot(s=>{DEDS=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(d=>d.active!==false).sort((a,b)=>(a.order||0)-(b.order||0));dedLoaded=true;renderDedic();},()=>{dedLoaded=true;renderDedic();});
+  DB.collection('quotes').onSnapshot(s=>{QUOTES=s.docs.map(d=>d.data()).filter(q=>q.active!==false).sort((a,b)=>(a.order||0)-(b.order||0));renderQuote();},()=>{});
+  DB.collection('stats').onSnapshot(s=>{STATS={};s.docs.forEach(d=>STATS[d.id]=d.data());renderDedic();},()=>{});
+})();
+
+/* ============ HESED TABLE ============ */
+const BADGES=[[1,'🕯️','נר ראשון'],[7,'🌿','שבוע של חסד'],[18,'⭐','ח"י שמות'],[36,'🔥','ל"ו'],[49,'👑','שבעה שבועות']];
+function hesedHTML(){
+  const list=Object.values(PRAY).sort((a,b)=>b.ts-a.ts),n=list.length,next=BADGES.find(b=>b[0]>n);
+  let h=`<div class="hesed"><h3>גומלי חסד בתפילה</h3><div class="pts"><span class="big">${n*10}</span><span>נקודות חסד · הזכרת ${n} ${n===1?'שם':'שמות'} בתפילתך</span></div>
+  <div class="badges">${BADGES.map(b=>`<span class="badge${n>=b[0]?' got':''}" title="${b[0]} שמות">${b[1]} ${b[2]}</span>`).join('')}</div>`;
+  if(next)h+=`<div class="note">עוד ${next[0]-n} ${next[0]-n===1?'שם':'שמות'} לתג ${next[1]} ${next[2]}</div>`;
+  if(n)h+=`<table class="hs"><tr><th>שם</th><th>עבור</th><th>מתי</th></tr>${list.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.purpose)}</td><td>${new Date(x.ts).toLocaleDateString('he-IL',{day:'numeric',month:'numeric'})} ${hm(new Date(x.ts))}</td></tr>`).join('')}</table>`;
+  else h+=`<div class="note">כשתזכיר בתפילתך שם מההקדשות, הוא יופיע כאן.</div>`;
+  return h+'</div>';
+}
+
+/* ============ QUICK TOOLS / DIALOG BACKDROP ============ */
+$('#qFsUp').onclick=()=>$('#fsUp').click();$('#qFsDown').onclick=()=>$('#fsDown').click();
+$('#qTheme').onclick=()=>{const dark=S.theme==='dark'||(S.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);S.theme=dark?'light':'dark';saveS();render();};
+['#settings','#ask'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();}));
+$('#resetSettings').onclick=async()=>{if(await appConfirm('איפוס הגדרות','כל ההגדרות יחזרו לברירת המחדל. נתוני המעקב יישמרו.','אפס הגדרות')){S=Object.assign({},DEF);saveS();fillSettings();render();paintAuto();toast('ההגדרות אופסו');}};
+
+/* ============ MINI BAR ============ */
+$('#mFsDown').onclick=()=>$('#fsDown').click();$('#mFsUp').onclick=()=>$('#fsUp').click();
+$('#mSettings').onclick=()=>$('#openSettings').click();
+$('#mTheme').onclick=()=>$('#qTheme').click();
+$('#miniCount').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+let miniRaf=0;function miniCheck(){miniRaf=0;const show=document.querySelector('.hero').getBoundingClientRect().bottom<0;const m=$('#mini');m.classList.toggle('show',show);m.setAttribute('aria-hidden',!show);m.querySelectorAll('button').forEach(b=>b.tabIndex=show?0:-1);}
+window.addEventListener('scroll',()=>{if(!miniRaf)miniRaf=requestAnimationFrame(miniCheck);},{passive:true});
+
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(tab==='men')renderPanel();},150);});
+/* ============ NAV ============ */
+$('#prevDay').onclick=()=>{if(viewDay>1){viewDay--;render();}};
+$('#nextDay').onclick=()=>{if(viewDay<49){viewDay++;render();}};
+let sidY=null,sidReturn=null; // מיקום הגלילה בנוסח, לחזרה בדיוק לאותו מקום
+function goTab(t){if(t===tab)return;if(tab==='sid')sidY=scrollY;if(t==='sid'){sidReturn=null;}
+  tab=t;renderPanel();
+  if(t==='sid'&&sidY!==null){const y=sidY;requestAnimationFrame(()=>window.scrollTo({top:y}));}
+  else{const r=$('#panel').getBoundingClientRect();if(r.top<0)window.scrollTo({top:scrollY+r.top-80});}}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+document.addEventListener('click',e=>{
+  if(e.target.closest('#toMenorah')){sidY=scrollY;sidReturn=sidY;tab='men';renderPanel();const r=$('#panel').getBoundingClientRect();window.scrollTo({top:scrollY+r.top-80});}
+  else if(e.target.closest('#backToSid')){goTab('sid');}
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
+setInterval(()=>{const before=ST.target+'|'+ST.night;compute();if(before!==ST.target+'|'+ST.night){viewDay=null;render();}},60000);
+
+render();
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
