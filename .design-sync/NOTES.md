@@ -8,7 +8,8 @@
 - Playwright for the render check: `playwright@1.56.0` in `.ds-sync/` matches the cloud container's `/opt/pw-browsers/chromium-1194`.
 
 ## Upload status
-- First sync was built and verified in a claude.ai/code cloud session, where DesignSync has no authorization and `/design-login` is unavailable. **Nothing has been uploaded and no `projectId` is pinned.** Run `/design-login` then `/design-sync` from a local interactive Claude Code session: it will create the project (first-sync path), and the previews + grades here carry forward.
+- First upload done 2026-10-20 from a local session into project **Omer DS** (`46511edc-ba99-408a-91bb-109c4b62206d`, pinned in config.json). 36 components, 186 files, all previews graded good. Next syncs: fetch `_ds_sync.json` from the project into `.design-sync/.cache/remote-sync.json` and run the driver with `--remote` (atomic path since the project is now pinned).
+- Local render check: playwright@latest (1.64.1) in `.ds-sync/` matches the cached chromium-1248 on this machine (1.56.0 matches the cloud container only).
 
 ## Fixes learned
 - Base resets inside `.omer-root` must use `:where()` (zero specificity). A plain `.omer-root button{color:inherit}` beat `.btn` and made gold buttons unreadable in dark mode.
