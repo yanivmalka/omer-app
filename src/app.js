@@ -188,7 +188,7 @@ function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
     if(swBusy||e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
       {s=null;return;}
     s={x:t.clientX,y:t.clientY,t:Date.now(),lock:null,dx:0};},{passive:true});
-  document.addEventListener('touchmove',e=>{if(!s)return;const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
+  document.addEventListener('touchmove',e=>{if(!s)return;if(e.touches.length>1){s=null;swSet(0,SW_MS);swPeek(0,0);return;}const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
     if(s.lock===null){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;s.lock=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';}
     if(s.lock!=='x')return;
     e.preventDefault(); // לא לגלול את הדף בזמן דפדוף אופקי
@@ -203,6 +203,23 @@ function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
   // לחיצה שנגמרה בדפדוף לא תפעיל כפתור
   document.addEventListener('click',e=>{if(swBusy&&e.target.closest('.hero,#panel')){e.stopPropagation();e.preventDefault();}},true);
+})();
+
+/* ============ PINCH ZOOM = TEXT SIZE ============ */
+// צביטה בשתי אצבעות משנה את גודל הטקסט של האפליקציה (0.8–1.4, בצעדים של 0.1) — הטקסט נשבר מחדש
+// לשורות ולא נוצרת גלילה אופקית. זום הדפדפן הרגיל חסום (touch-action ב־shell.css).
+(function(){let p=null;
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  function badge(txt){let b=document.getElementById('zoomBadge');
+    if(!b){b=document.createElement('div');b.id='zoomBadge';b.className='zoom-badge';b.setAttribute('aria-hidden','true');document.body.appendChild(b);}
+    if(txt===null){b.style.opacity='0';return;}b.textContent=txt;b.style.opacity='1';}
+  document.addEventListener('touchstart',e=>{if(e.touches.length===2&&!document.querySelector('dialog[open]')){p={d:dist(e.touches),fs:S.fs};}},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!p||e.touches.length!==2)return;e.preventDefault();
+    const want=Math.min(1.4,Math.max(.8,Math.round(p.fs*dist(e.touches)/p.d*10)/10));
+    badge('גודל טקסט '+Math.round(want*100)+'%');
+    if(want!==S.fs){miniLock=Date.now()+2500;setFs(want);}},{passive:false});
+  const end=e=>{if(p&&e.touches.length<2){p=null;setTimeout(()=>badge(null),500);}};
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
 })();
 
 /* ============ HERO ============ */
