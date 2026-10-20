@@ -347,7 +347,13 @@ function TrackerTab(){
 // The native plugin OmerUpdater (android/.../OmerUpdaterPlugin.java) downloads it and opens Android's installer.
 const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
 const UPD_REPO='yanivmalka/omer-app';
-let Updater=null;try{if(NATIVE)Updater=Capacitor.registerPlugin('OmerUpdater');}catch(e){console.error(e);}
+// registerPlugin מגיע מ־capacitor.js (ש־build-www מוסיף ל־www); גיבוי: Capacitor.Plugins מהגשר המקורי
+function nativePlugin(name){
+  const reg=(window.capacitorExports&&capacitorExports.registerPlugin)||(window.Capacitor&&Capacitor.registerPlugin);
+  if(reg){try{return reg(name);}catch(e){console.error(e);}}
+  return (window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins[name])||null;
+}
+const Updater=NATIVE?nativePlugin('OmerUpdater'):null;
 const UPD={cur:null,status:'idle',latestCode:0,url:'',pct:0,msg:''};
 const withTimeout=(p,ms)=>Promise.race([Promise.resolve(p),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
 // הגרסה המותקנת: מהפלאגין, ואם הוא לא עונה — מספר הבנייה שנכתב ל־index.html בזמן הבנייה (OMER_BUILD)
@@ -396,7 +402,7 @@ async function runUpdate(){
 }
 // גיבוי: פתיחת קובץ ה־APK בדפדפן של הטלפון (ההתקנה משם)
 async function openUpdateInBrowser(){const url=UPD.url||`https://github.com/${UPD_REPO}/releases/latest/download/omer-app.apk`;
-  try{await Updater.openUrl({url});}catch(e){try{window.open(url,'_blank');}catch(_){}}}
+  try{if(!Updater)throw 0;await Updater.openUrl({url});}catch(e){try{window.open(url,'_blank');}catch(_){}}}
 const updText=()=>UPD.status==='checking'?'בודק…':UPD.status==='downloading'?`מוריד… ${UPD.pct}%`:UPD.status==='none'?'האפליקציה מעודכנת.':UPD.status==='avail'?`גרסה חדשה זמינה (${UPD.latestCode}).`:'';
 function UpdateBanner(){
   if(!NATIVE||(UPD.status!=='avail'&&UPD.status!=='downloading'))return null;
@@ -407,7 +413,7 @@ function UpdateBanner(){
 
 /* ============ ANDROID BACK BUTTON ============ */
 // סדר: סגירת חלון פתוח → חזרה מהמנורה/מעקב לנוסח → אישור יציאה מהאפליקציה
-let AppPlugin=null;try{if(NATIVE)AppPlugin=Capacitor.registerPlugin('App');}catch(e){console.error(e);}
+const AppPlugin=NATIVE?nativePlugin('App'):null;
 async function onBack(){
   if(UI.confirm){closeConfirm(false);return;}
   if(UI.settings){UI.settings=false;rerender();return;}

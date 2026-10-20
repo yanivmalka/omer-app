@@ -66,7 +66,7 @@ Service worker דורש שרת (לא file://). פרסום: GitHub Pages מ־main
 - אנדרואיד — כפתור "הקודם": סוגר חלון פתוח → חוזר ממנורה/מעקב לנוסח → אישור יציאה (`@capacitor/app`).
 
 ## אנדרואיד (APK)
-Capacitor (`android/`, `capacitor.config.json`, `npm run sync`). כל push ל־main/android-apk מריץ `.github/workflows/android.yml`, שבונה ומפרסם Release `build-N` עם `omer-app.apk` (versionCode = N). באפליקציה: באנר "יש גרסה חדשה" + הגדרות → "בדוק עדכון" (פלאגין `OmerUpdater`). החתימה במפתח `android/keystore` — אסור להחליף מפתח (אחרת עדכון לא יותקן). לוגים של Actions חסומים מהסביבה; שגיאות gradle מוצגות כ־annotations. `index.html` מציג שגיאות הפעלה על המסך.
+Capacitor (`android/`, `capacitor.config.json`, `npm run sync`). כל push ל־main/android-apk מריץ `.github/workflows/android.yml`, שבונה ומפרסם Release `build-N` עם `omer-app.apk` (versionCode = N). באפליקציה: באנר "יש גרסה חדשה" + הגדרות → "בדוק עדכון" (פלאגין `OmerUpdater`). החתימה במפתח `android/keystore` — אסור להחליף מפתח (אחרת עדכון לא יותקן). לוגים של Actions חסומים מהסביבה; שגיאות gradle מוצגות כ־annotations. `index.html` מציג שגיאות הפעלה על המסך. `build-www` מעתיק את `@capacitor/core/dist/capacitor.js` ל־www ומוסיף אותו ל־index.html — בלעדיו אין `registerPlugin` והפלאגינים (עדכון, כפתור הקודם) לא נגישים; ב־app.js דרך `nativePlugin(name)`.
 
 ## רעיונות פתוחים שהוצעו (לא מומשו)
 ל"ג בעומר/יום העצמאות/יום ירושלים; מצב בית כנסת; תזכורת שנייה בחצות + בוקר; ווידג'ט; סנכרון משפחתי; לימוד יומי על מידת היום; מערכת ניהול להקדשות ומשפטים.

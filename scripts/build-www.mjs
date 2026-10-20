@@ -9,6 +9,11 @@ for (const p of ['components/bundle.js', 'components/bundle.css', 'components/li
   cpSync(`ds/${p}`, `www/ds/${p}`, { recursive: true });
 // CI passes BUILD_NUMBER (= Android versionCode); the app uses it if the native version call fails
 const bn = parseInt(process.env.BUILD_NUMBER || '0', 10) || 0;
-const html = readFileSync('www/index.html', 'utf8').replace('<head>', `<head>\n<script>window.OMER_BUILD=${bn};</script>`);
+// Capacitor's JS core (registerPlugin etc.). The native bridge alone does not provide registerPlugin,
+// so without this file the app's native plugins (updater, back button) are unreachable.
+cpSync('node_modules/@capacitor/core/dist/capacitor.js', 'www/capacitor.js');
+const html = readFileSync('www/index.html', 'utf8')
+  .replace('<head>', `<head>\n<script>window.OMER_BUILD=${bn};</script>`)
+  .replace('<script src="src/logic.js">', '<script src="capacitor.js"></script>\n<script src="src/logic.js">');
 writeFileSync('www/index.html', html);
 console.log('www/ ready, build', bn);
