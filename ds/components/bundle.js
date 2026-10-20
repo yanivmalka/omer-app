@@ -682,10 +682,12 @@ var OmerDS = (() => {
   function Menorah({ day, width = 360, fontScale = 1, nikud = true, caption = true }) {
     const t = (s) => stripNikud(s, nikud);
     const n = day, k = kav(n), FS = 19, SFS = 17, TFS = 30, FFS = FS;
-    const cw = Math.max(260, width - 36), BL = 1.3 * 17, bl = BL * fontScale;
-    const ratio = Math.min(0.9, FS * cw / 352 / (BL * 1.4)), D = ratio * bl;
-    const STEP = Math.min(78, Math.max(40, (FS * cw / D / 2 - 56) / 3));
-    const R3 = 3 * STEP, SIDEX = R3 + 38, VBW = 2 * (SIDEX + 18), CX = VBW / 2, svgW = Math.min(cw, VBW * D / FS);
+    // TW = רוחב קנה (ביחידות viewBox, FS=19 גובה מילה); בלי ניקוד הקנה צר יותר → אותיות גדולות יותר ביחס לרוחב המסך
+    const TW = nikud ? 27 : 24, GAP = 4, SIDEPAD = TW / 2 + 19 + 17;
+    const cw = Math.max(260, width - 22), BL = 1.3 * 17, bl = BL * fontScale;
+    const VBMIN = 6 * (TW + GAP) + 2 * SIDEPAD, D = Math.min(FS * cw / VBMIN, bl);
+    const STEP = Math.min(78, Math.max(TW + GAP, (FS * cw / D / 2 - SIDEPAD) / 3));
+    const R3 = 3 * STEP, SIDEX = R3 + TW / 2 + 19, VBW = 2 * (SIDEX + 17), CX = VBW / 2, svgW = Math.min(cw, VBW * D / FS);
     const OFF = [-3, -2, -1, 0, 1, 2, 3];
     const FRAG = { 3: "\u05DC\u05B7\u05DE\u05B0\u05E0\u05B7", 2: "\u05E6\u05B5\u05BC\u05D7\u05B7 \u05D1\u05B4\u05BC", 1: "\u05E0\u05B0\u05D2\u05B4\u05D9", 0: "\u05E0\u05B9\u05EA", "-1": "\u05DE\u05B4\u05D6\u05B0", "-2": "\u05DE\u05D5\u05B9\u05E8", "-3": "\u05E9\u05B4\u05C1\u05D9\u05E8" };
     const est = (w) => w.replace(/[֑-ׇ]/g, "").length * FS * 0.6;
@@ -769,7 +771,7 @@ var OmerDS = (() => {
     col(CX + SIDEX, [A(0), A(1), A(2), A(3)], true);
     col(CX - SIDEX, [A(4), A(5), A(6), { t: '\u05D1\u05E9\u05DB\u05DE\u05DC"\u05D5', on: false }], false);
     const bw = Math.min(VBW / 2 - 40, Math.max(110, need(PS[3].slice(7)) / 2 + 14)), bh = 38 + FS, VBH = STEM + 6 + bh + 14;
-    const style = { width: svgW.toFixed(0) + "px", margin: "0 auto", "--mfs": FS + "px", "--msfs": SFS + "px", "--mtfs": TFS + "px", "--mffs": FFS + "px", "--mcw": "32px" };
+    const style = { width: svgW.toFixed(0) + "px", margin: "0 auto", "--mfs": FS + "px", "--msfs": SFS + "px", "--mtfs": TFS + "px", "--mffs": FFS + "px", "--mcw": TW + "px" };
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "men-scroll", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { className: "menorah", viewBox: `0 0 ${VBW} ${VBH.toFixed(0)}`, role: "img", "aria-label": "\u05DE\u05D6\u05DE\u05D5\u05E8 \u05DC\u05DE\u05E0\u05E6\u05D7 \u05D1\u05E6\u05D5\u05E8\u05EA \u05D4\u05DE\u05E0\u05D5\u05E8\u05D4", style, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("text", { className: "mtop", x: CX, y: (TFS + 8).toFixed(1), textAnchor: "middle", direction: "rtl", children: t("\u05E9\u05B4\u05C1\u05D5\u05B4\u05BC\u05D9\u05EA\u05B4\u05D9 \u05D4\u05F3 \u05DC\u05B0\u05E0\u05B6\u05D2\u05B0\u05D3\u05B4\u05BC\u05D9 \u05EA\u05B8\u05DE\u05B4\u05D9\u05D3") }),
