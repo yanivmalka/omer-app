@@ -1,0 +1,88 @@
+/* Omer DS — generated from tokens.json */
+:root, [data-theme="light"] {
+  --bg: #edf0f7;
+  --surface: #ffffff;
+  --surface-2: #e3e8f3;
+  --ink: #19224a;
+  --muted: #58618a;
+  --gold: #9c6f12;
+  --gold-strong: #7a5306;
+  --gold-wash: #f6e7bd;
+  --line: #cdd4e6;
+  --warn: #a8412f;
+  --ok: #2f6b4a;
+  --on-gold: #1b1606;
+  --shadow-floating: 0 6px 20px rgba(10, 14, 35, 0.18);
+  --shadow-bar: 0 4px 14px rgba(10, 14, 35, 0.1);
+}
+[data-theme="dark"] {
+  --bg: #131b3d;
+  --surface: #1b2452;
+  --surface-2: #243063;
+  --ink: #eee8d8;
+  --muted: #a4accd;
+  --gold: #e4bc5a;
+  --gold-strong: #f3d27e;
+  --gold-wash: rgba(228,188,90,0.17);
+  --line: #34407a;
+  --warn: #ee8a78;
+  --ok: #8fd1a8;
+  --on-gold: #1b1606;
+}
+:root {
+  --radius-card: 22px;
+  --radius-box: 14px;
+  --radius-pill: 999px;
+  --font-serif: "Frank Ruhl Libre", "Times New Roman", serif;
+  --font-sans: "Assistant", "Segoe UI", Arial, sans-serif;
+}
+.day-number {
+  font-family: var(--font-serif);
+  font-size: 3.4rem;
+  line-height: 1;
+  font-weight: 700;
+}
+.count {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+.count-line {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+.prayer {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  line-height: 1.9;
+  font-weight: 400;
+}
+.heading {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.quote {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+.body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+.small {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+.button {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+}

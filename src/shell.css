@@ -1,0 +1,4 @@
+/* מעטפת הדף בלבד: כל העיצוב עצמו מגיע ממערכת העיצוב (ds/components/bundle.css) */
+html{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-text-size-adjust:100%}
+#app{min-height:100vh}

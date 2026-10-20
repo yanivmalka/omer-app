@@ -1,6 +1,9 @@
 // Service worker: מאפשר פתיחה ללא רשת אחרי הביקור הראשון
-const CACHE = 'omer-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'omer-v2';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+  './src/shell.css', './src/logic.js', './src/app.js',
+  './ds/components/bundle.css', './ds/components/bundle.js',
+  './ds/components/lib/react.production.min.js', './ds/components/lib/react-dom.production.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));

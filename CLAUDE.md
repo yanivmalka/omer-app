@@ -4,7 +4,7 @@
 השיחה עם המשתמש בעברית; קוד, הערות בקוד ושמות משתנים יכולים להיות באנגלית או בעברית כמו שקיים.
 
 ## מה זה
-אפליקציית עזר לספירת העומר: PWA לאנדרואיד ולאייפון. כרגע קובץ אחד `index.html` (HTML+CSS+JS, בלי build).
+אפליקציית עזר לספירת העומר: PWA לאנדרואיד ולאייפון. כרגע בלי build: `index.html` (מעטפת) + `src/logic.js` + `src/app.js` (React דרך `React.createElement`) + `ds/` — מערכת העיצוב "Omer DS" (`window.OmerDS`). כל רכיב UI מגיע מ־`ds/`; שינוי במראה נעשה במערכת העיצוב ולא ב־app.js.
 המטרה לטווח ארוך: Angular + Ionic + Capacitor (בסיס קוד אחד ל־PWA ולחנויות; Capacitor Local Notifications לתזכורות ברקע).
 הלוגיקה כתובה בפונקציות טהורות כדי שתעבור ל־Angular Service.
 
@@ -14,12 +14,13 @@ python3 -m http.server 8080   # או: npx serve .
 ```
 Service worker דורש שרת (לא file://). פרסום: GitHub Pages מ־main/root.
 
-## מפת הקוד ב־index.html (חיפוש לפי כותרות `/* ==== X ==== */`)
+## מפת הקוד (`src/logic.js` = DATA/TIME/STATE, `src/app.js` = RENDER ואילך; חיפוש לפי כותרות `/* ==== X ==== */`)
+נתוני הנוסח והפונקציות `countText`/`shortCount`/`gem`/`kav`/`SEF`/`ANA`/`PS`/`LESHEM`… מגיעים מ־`window.OmerDS` (נבדקו זהים לגרסה הקודמת); `LOCS` נשאר ב־logic.js.
 - **DATA** — `SEF`/`SEFB` (ספירות), `ANA` (אנא בכח: מילים + ראשי תיבות לכל שורה), `PS` (מזמור סז, 7 פסוקים = 49 מילים, ללא הכותרת), נוסחי `LESHEM`, `HINENI`, `BRACHA`, `HARACHAMAN`, `RIBONO_A/B`, `LOCS` (ערים, `g:'il'` לישראל, `tz` לזיהוי לפי אזור זמן).
 - **NUMBERS/TEXT** — `countText(n,nusach)` נוסח הספירה לפי נוסח; `shortCount` מקוצר בספרות; `gem` גימטריה; `kav(n)` → `{w,d,sef,ana,anaFull,ps}` הכוונות של היום.
 - **TIME** — חישוב שקיעה/צאת הכוכבים (`sunEvent`, `tzeit`, `alot`), לוח עברי דרך `Intl` (`hebParts`, `omerOf`, `nextStart`).
 - **STATE** — `compute()`: אם עברנו צאת הכוכבים → סופרים את הלילה של היום הבא; בין עלות השחר לצאת הכוכבים `inProg` (היום — נספר אמש).
-- **RENDER** — `renderHero`, `siddurHTML` (קבוצות מתכווצות `details.grp`), `menorahHTML` (SVG מחושב), `trackerHTML` + `hesedHTML`.
+- **RENDER** — רכיבי React ב־app.js: `Hero` (DayHero), `SiddurTab` (קבוצות מתכווצות `CollapsibleGroup`), `MenorahTab` (`Menorah` — SVG מחושב בתוך מערכת העיצוב), `TrackerTab` (`TrackerGrid` + `HesedSummary`), דיאלוגים. מצב גלובלי (`S`, `ST`, `TRACK`, `viewDay`, `tab`) וקריאה ל־`render()` מרנדרת מחדש.
 - **READING ACTIVITY** — רישום אוטומטי של זמן שהייה/גלילה בנוסח (`ACT`, localStorage `omer-activity`).
 - **AUTO SCROLL** — 5 מהירויות (`SPEEDS`), פקד −/שם/+ עם החלקה רציפה, הקשה על הטקסט = הפעלה/עצירה, גלילה ידנית לא עוצרת.
 - **DEDICATIONS & QUOTES** — נטען מ־`window.claude.use('db')` (מאגר של claude.ai artifact). מחוץ ל־claude.ai האזור מוסתר. **יש להחליף ב־API של מערכת הניהול.**

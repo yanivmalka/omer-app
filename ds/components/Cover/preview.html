@@ -1,0 +1,80 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0}
+  body{background:var(--bg)}
+  svg{display:block;width:960px;height:320px}
+  .ground{fill:var(--bg)}
+  .gold{fill:var(--gold)}
+  .ink{fill:var(--ink)}
+  .wash{fill:var(--gold-wash)}
+  .blk{rx:var(--radius-card)}
+  .counted{fill:var(--on-gold)}
+  .cut{fill:var(--bg)}
+  .name{font-family:var(--font-serif);font-weight:700;font-size:112px;fill:var(--ink);direction:ltr}
+  .tag{font-family:var(--font-sans);font-size:13px;fill:var(--muted)}
+</style></head><body>
+<svg viewBox="0 0 960 320" role="img" aria-label="ספירת העומר">
+<!-- blocks: gold slab 312x288 (bleeds off the top), ink 160x260 (bleeds off the right and bottom), gold-wash 160x104 (bleeds off the top and right), over the bg ground.
+     arrangement: a staggered stack, one tall gold slab with two satellites down the right edge.
+     pattern: the 7x7 grid of round day cells of TrackerGrid, the 49 days of the count: 33 counted discs in on-gold, 16 cut through to bg, because the system's one shape is the day cell and day 33 is the README's tonight.
+     steps: pitch 34 = 28px disc + the 6px gap of the source .grid, 40px slab margin; blocks use radius-card, discs radius-pill (r=14). -->
+<rect class="ground" width="960" height="320"/>
+<rect class="gold blk" x="544" y="-24" width="312" height="288"/>
+<rect class="ink blk" x="872" y="104" width="160" height="260"/>
+<rect class="wash blk" x="872" y="-24" width="160" height="104"/>
+<circle class="counted" cx="802" cy="30" r="14"/>
+<circle class="counted" cx="768" cy="30" r="14"/>
+<circle class="counted" cx="734" cy="30" r="14"/>
+<circle class="counted" cx="700" cy="30" r="14"/>
+<circle class="counted" cx="666" cy="30" r="14"/>
+<circle class="counted" cx="632" cy="30" r="14"/>
+<circle class="counted" cx="598" cy="30" r="14"/>
+<circle class="counted" cx="802" cy="64" r="14"/>
+<circle class="counted" cx="768" cy="64" r="14"/>
+<circle class="counted" cx="734" cy="64" r="14"/>
+<circle class="counted" cx="700" cy="64" r="14"/>
+<circle class="counted" cx="666" cy="64" r="14"/>
+<circle class="counted" cx="632" cy="64" r="14"/>
+<circle class="counted" cx="598" cy="64" r="14"/>
+<circle class="counted" cx="802" cy="98" r="14"/>
+<circle class="counted" cx="768" cy="98" r="14"/>
+<circle class="counted" cx="734" cy="98" r="14"/>
+<circle class="counted" cx="700" cy="98" r="14"/>
+<circle class="counted" cx="666" cy="98" r="14"/>
+<circle class="counted" cx="632" cy="98" r="14"/>
+<circle class="counted" cx="598" cy="98" r="14"/>
+<circle class="counted" cx="802" cy="132" r="14"/>
+<circle class="counted" cx="768" cy="132" r="14"/>
+<circle class="counted" cx="734" cy="132" r="14"/>
+<circle class="counted" cx="700" cy="132" r="14"/>
+<circle class="counted" cx="666" cy="132" r="14"/>
+<circle class="counted" cx="632" cy="132" r="14"/>
+<circle class="counted" cx="598" cy="132" r="14"/>
+<circle class="counted" cx="802" cy="166" r="14"/>
+<circle class="counted" cx="768" cy="166" r="14"/>
+<circle class="counted" cx="734" cy="166" r="14"/>
+<circle class="counted" cx="700" cy="166" r="14"/>
+<circle class="counted" cx="666" cy="166" r="14"/>
+<circle class="cut" cx="632" cy="166" r="14"/>
+<circle class="cut" cx="598" cy="166" r="14"/>
+<circle class="cut" cx="802" cy="200" r="14"/>
+<circle class="cut" cx="768" cy="200" r="14"/>
+<circle class="cut" cx="734" cy="200" r="14"/>
+<circle class="cut" cx="700" cy="200" r="14"/>
+<circle class="cut" cx="666" cy="200" r="14"/>
+<circle class="cut" cx="632" cy="200" r="14"/>
+<circle class="cut" cx="598" cy="200" r="14"/>
+<circle class="cut" cx="802" cy="234" r="14"/>
+<circle class="cut" cx="768" cy="234" r="14"/>
+<circle class="cut" cx="734" cy="234" r="14"/>
+<circle class="cut" cx="700" cy="234" r="14"/>
+<circle class="cut" cx="666" cy="234" r="14"/>
+<circle class="cut" cx="632" cy="234" r="14"/>
+<circle class="cut" cx="598" cy="234" r="14"/>
+<text class="name" x="48" y="140">ספירת</text>
+<text class="name" x="48" y="246">העומר</text>
+<text class="tag" x="48" y="284">Hebrew, RTL, mobile-first PWA for counting the Omer.</text>
+</svg>
+</body></html>
