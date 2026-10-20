@@ -1,0 +1,31 @@
+{
+  "shape": "package",
+  "pkg": "@omer/ds",
+  "globalName": "OmerDS",
+  "buildCmd": "cd design-system && npm ci && npm run build",
+  "cssEntry": "dist/styles.css",
+  "provider": {
+    "component": "OmerRoot",
+    "props": {
+      "theme": "light"
+    }
+  },
+  "docsDir": "../.design-sync/docs",
+  "overrides": {
+    "Dialog": {
+      "cardMode": "single",
+      "viewport": "560x320"
+    },
+    "Menorah": {
+      "cardMode": "column"
+    },
+    "AnaBekoach": {
+      "cardMode": "column"
+    },
+    "DayHero": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md",
+  "projectId": "46511edc-ba99-408a-91bb-109c4b62206d"
+}

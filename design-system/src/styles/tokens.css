@@ -1,0 +1,23 @@
+/* ספירת העומר — design tokens (extracted from index.html) */
+@import url("https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap");
+
+:root,.omer-root{
+  --bg:#EDF0F7; --surface:#FFFFFF; --surface-2:#E3E8F3; --ink:#19224A; --muted:#58618A;
+  --gold:#9C6F12; --gold-strong:#7A5306; --gold-wash:#F6E7BD; --line:#CDD4E6; --warn:#A8412F; --ok:#2F6B4A;
+  --on-gold:#1B1606;
+  --serif:"Frank Ruhl Libre","Times New Roman",serif; --sans:"Assistant","Segoe UI",Arial,sans-serif;
+  /* text scale: --fs is the user setting (0.8–1.4); UI chrome grows ~45% as fast as prayer text */
+  --fs:1; --ui:calc(1 + (var(--fs) - 1) * .45);
+  --radius-card:22px; --radius-box:14px; --radius-pill:999px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]),.omer-root:not([data-theme="light"]){
+    --bg:#131B3D; --surface:#1B2452; --surface-2:#243063; --ink:#EEE8D8; --muted:#A4ACCD;
+    --gold:#E4BC5A; --gold-strong:#F3D27E; --gold-wash:rgba(228,188,90,.17); --line:#34407A; --warn:#EE8A78; --ok:#8FD1A8;
+  }
+}
+:root[data-theme="dark"],.omer-root[data-theme="dark"]{
+  --bg:#131B3D; --surface:#1B2452; --surface-2:#243063; --ink:#EEE8D8; --muted:#A4ACCD;
+  --gold:#E4BC5A; --gold-strong:#F3D27E; --gold-wash:rgba(228,188,90,.17); --line:#34407A; --warn:#EE8A78; --ok:#8FD1A8;
+}
+html{font-size:calc(17px * var(--ui))}
