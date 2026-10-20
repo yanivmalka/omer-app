@@ -356,11 +356,13 @@ function stabilizeSizes(force){
   // מילים לא נשברות: בעמודות הצרות (אנא בכח, למנצח) מקטינים את הגופן כך שהמילה הארוכה מבין 49 הימים תיכנס בשורה
   root.style.setProperty('--kav-fit-2','1');root.style.setProperty('--kav-fit-3','1');root.classList.remove('kav-stack');
   const fits={};
-  [[1,n=>tx(OmerDS.kav(n).ana)],[2,n=>tx(OmerDS.kav(n).ps.w)]].forEach(([i,get])=>{
+  [[1,n=>OmerDS.kav(n).anaFull],[2,n=>tx(OmerDS.kav(n).ps.w)]].forEach(([i,get])=>{
     const cell=kav[i],sp=kavS[i];if(!cell||!sp)return;
     const cs=getComputedStyle(cell),avail=cell.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
     const probe=sp.cloneNode(false);probe.style.cssText='display:inline-block;white-space:nowrap;position:absolute;visibility:hidden';cell.appendChild(probe);
-    let w=0;for(let n=1;n<=49;n++)get(n).split(/\s+/).forEach(word=>{probe.textContent=word;w=Math.max(w,probe.getBoundingClientRect().width);});
+    let w=0;for(let n=1;n<=49;n++)get(n).split(/\s+/).forEach(word=>{if(i===1){probe.className='acr-k';probe.innerHTML='';[...word].forEach(c=>{if(c==='"'){probe.append(c);return;}const l=document.createElement('span');l.className='l on';l.textContent=c;probe.appendChild(l);});} // כמו בתצוגה: אותיות מודגשות עם רקע
+      else probe.textContent=word;
+      w=Math.max(w,probe.getBoundingClientRect().width);});
     probe.remove();fits[i]=w>avail?Math.floor(avail/w*100)/100:1;
   });
   // אם בעמודה של רבע המילה הייתה צריכה לקטון מתחת ל־80% (גופן גדול / מסך צר): ספירה בשורה מלאה, אנא בכח ולמנצח חצי־חצי
@@ -371,7 +373,7 @@ function stabilizeSizes(force){
     if(q('.count')){q('.count').textContent=tx(countText(n,S.nusach));mx.count=Math.max(mx.count,q('.count').offsetHeight);}
     if(q('.daynum .n'))q('.daynum .n').textContent=gem(n);
     if(q('.daynum .of')){q('.daynum .of').textContent=shortCount(n,S.nusach);mx.of=Math.max(mx.of,q('.daynum .of').offsetHeight);}
-    if(kavS.length===3){kavS[0].textContent=tx(k.sef);kavS[1].textContent=tx(k.ana);kavS[2].textContent=tx(k.ps.w);
+    if(kavS.length===3){kavS[0].textContent=tx(k.sef);kavS[1].textContent=k.anaFull;kavS[2].textContent=tx(k.ps.w);
       kav.forEach(d=>{mx.kav=Math.max(mx.kav,d.offsetHeight);});}
     if(cc){cc.textContent=tx(countText(n,S.nusach));mx.cl=Math.max(mx.cl,cc.offsetHeight);}
   }

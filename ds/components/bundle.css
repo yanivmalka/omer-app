@@ -56,6 +56,9 @@ html{font-size:calc(17px * var(--ui))}
 .kav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .kav div{background:var(--gold-wash);border-radius:14px;padding:8px 10px;min-width:0}
 .kav small{display:block;color:var(--muted);font-size:0.9rem;font-weight:600}
+.kav .acr-k,.kav .acr-k .l{display:inline;font-size:inherit}
+.kav .acr-k .l{padding:0 1px}
+.kav .acr-k .l.on{color:var(--surface);background:var(--gold);border-radius:.25em;padding:0 .15em .05em}
 .kav span{font-family:var(--serif);font-size:calc(1.15rem * var(--fs) / var(--ui));font-weight:700;color:var(--gold-strong);display:block;overflow-wrap:anywhere}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{border:0;border-radius:999px;padding:11px 18px;font-weight:700;background:var(--gold);color:var(--on-gold)}

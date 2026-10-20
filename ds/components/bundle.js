@@ -475,7 +475,11 @@ var OmerDS = (() => {
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: "of", children: shortCount(day, nusach) })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "count", children: t(countText(day, nusach)) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(KavanotGrid, { sefira: t(k.sef), ana: t(k.ana), psalmWord: t(k.ps.w) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(KavanotGrid, { sefira: t(k.sef), ana: (() => {
+        // אנא בכח: השם של השבוע (אב"ג ית"ץ) והאות של היום מודגשת; ביום השביעי — כל השם
+        const L = (ci) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: cx2("l", (k.d === 6 || ci === k.d) && "on"), children: ANA[k.w].a[ci] }, ci);
+        return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: "acr-k", children: [L(0), L(1), '"', L(2), " ", L(3), L(4), '"', L(5)] });
+      })(), psalmWord: t(k.ps.w) }),
       actions && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "row", children: actions }),
       y && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "yesterday", children: y }),
       children
