@@ -17,10 +17,13 @@ html{touch-action:pan-x pan-y}
 .zoom-badge{position:fixed;left:50%;top:40%;z-index:9;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .15s;
   background:var(--ink);color:var(--bg);border:2px solid var(--gold);border-radius:999px;padding:10px 18px;font-weight:700;white-space:nowrap}
 .hero{will-change:transform}
-.swipe-peek{position:fixed;top:50%;z-index:8;transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity .12s;
-  background:var(--ink);color:var(--bg);border:2px solid var(--gold);font-weight:700;font-size:1rem;padding:10px 16px;box-shadow:0 6px 18px rgba(10,14,35,.25);white-space:nowrap}
-.swipe-peek[data-side="left"]{left:0;border-radius:0 999px 999px 0}
-.swipe-peek[data-side="right"]{right:0;border-radius:999px 0 0 999px}
+.hero-deck{position:relative;touch-action:pan-y}
+.hero-track{position:relative;will-change:transform}
+.hero-cur,.hero-ghost{transform-origin:50% 60%}
+.hero-ghost{position:absolute;top:0;width:100%;pointer-events:none;transform:scale(.94)}
+.hero-ghost.next{right:calc(100% + 14px)} /* RTL: מחר מחכה משמאל */
+.hero-ghost.prev{left:calc(100% + 14px)}  /* אתמול מימין */
+.hero-ghost .hero,.hero-deck.dragging .hero-cur .hero{box-shadow:0 12px 28px rgba(10,14,35,.18)}
 /* סוף הנוסח: הנעה לפעולה */
 .endcta{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:22px 0 6px;padding:18px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
 .endcta p{margin:0;color:var(--muted)}

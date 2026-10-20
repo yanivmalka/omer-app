@@ -162,48 +162,59 @@ function PreviewBanner(){if(!S.sim)return null;
   return h(Banner,{tone:'warn',title:'מצב בדיקה'},`התצוגה לפי ${new Date(S.sim).toLocaleString('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}. `,
     h(TextButton,{onClick:()=>{setSim('');toast('חזרה לתאריך האמיתי');}},'חזרה לתאריך האמיתי'));}
 
-/* ============ SWIPE BETWEEN DAYS (carousel) ============ */
-// RTL: מחליקים ימינה = היום הבא (נכנס משמאל), שמאלה = הקודם — כמו דפדוף בספר עברי.
-// כרטיס היום זז עם האצבע; "תווית" של היום הבא מציצה מהצד.
-const SW_MS=200;let swBusy=false;
-// רק כרטיס היום זז עם האצבע; הנוסח/המנורה מתחלפים במקום בעמעום קצר (קל יותר לעין)
-const swEls=()=>[document.querySelector('.hero')].filter(Boolean);
+/* ============ SWIPE BETWEEN DAYS (paper-card deck) ============ */
+// RTL: מחליקים ימינה = היום הבא (הכרטיס שלו מחכה משמאל), שמאלה = הקודם (מימין) — כמו דפדוף בספר עברי.
+// כרטיסי אתמול/מחר מרונדרים תמיד ליד הכרטיס הנוכחי (מחוץ למסך); בזמן הגרירה רק המסילה זזה (transform, בלי רינדור),
+// וכשהכרטיס החדש נעצר במרכז מחליפים את היום ברקע — בלי קפיצה. הנוסח/המנורה מתחלפים במקום בעמעום.
+const SW_MS=240,SW_GAP=14;let swBusy=false;
+const deck=()=>{const d=document.querySelector('.hero-deck');return d?{track:d.querySelector('.hero-track'),cur:d.querySelector('.hero-cur'),
+  next:d.querySelector('.hero-ghost.next'),prev:d.querySelector('.hero-ghost.prev'),W:d.offsetWidth+SW_GAP}:null;};
+function deckPose(D,dx,ms){if(!D)return;const tr=ms?`transform ${ms}ms cubic-bezier(.2,.7,.3,1)`:'none';
+  const p=Math.min(1,Math.abs(dx)/D.W),inc=dx>0?D.next:D.prev;
+  D.track.style.transition=tr;D.track.style.transform=dx?`translateX(${dx}px)`:'';
+  D.cur.style.transition=tr;D.cur.style.transform=dx?`rotate(${(dx/D.W)*2.5}deg) scale(${1-.06*p})`:'';
+  [D.next,D.prev].forEach(g=>{if(!g)return;g.style.transition=tr;g.style.transform=g===inc&&dx?`rotate(${(1-p)*(dx>0?-2.5:2.5)}deg) scale(${.94+.06*p})`:'';});
+  document.querySelector('.hero-deck').classList.toggle('dragging',!!dx);}
 function swFadePanel(){const p=document.getElementById('panel');if(!p)return;p.style.transition='none';p.style.opacity='.35';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{p.style.transition='opacity 220ms ease';p.style.opacity='';setTimeout(()=>{p.style.transition='';},260);}));}
-function swSet(x,ms){swEls().forEach(el=>{el.style.transition=ms?`transform ${ms}ms ease, opacity ${ms}ms ease`:'none';
-  el.style.transform=x?`translateX(${x}px)`:'';el.style.opacity=x?String(Math.max(.25,1-Math.abs(x)/innerWidth)):'';});}
-function swPeek(dir,frac){let p=document.getElementById('swPeek');
-  if(!p){p=document.createElement('div');p.id='swPeek';p.className='swipe-peek';p.setAttribute('aria-hidden','true');document.body.appendChild(p);}
-  const n=viewDay+dir;if(!dir||n<1||n>49||frac<=0){p.style.opacity='0';return;}
-  p.textContent=`${dir>0?'הבא':'הקודם'} · יום ${gem(n)}`;
-  p.dataset.side=dir>0?'left':'right';p.style.opacity=String(Math.min(1,frac*1.6));}
 function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
-  if(!animate||swBusy){viewDay=n;render();return true;}
-  swBusy=true;const W=innerWidth;swSet(d>0?W*.6:-W*.6,SW_MS);
-  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());swFadePanel();swSet(d>0?-W*.4:W*.4,0);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{swSet(0,SW_MS+60);setTimeout(()=>{swEls().forEach(el=>{el.style.transition='';});swBusy=false;},SW_MS+80);}));},SW_MS);
+  const D=animate&&!swBusy?deck():null;
+  if(!D){viewDay=n;render();return true;}
+  swBusy=true;deckPose(D,d>0?D.W:-D.W,SW_MS);
+  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());deckPose(deck(),0,0);swFadePanel();swBusy=false;},SW_MS+20);
   return true;}
 (function(){let s=null;
   document.addEventListener('touchstart',e=>{const t=e.touches[0];
-    if(swBusy||e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
+    if(swBusy||e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero-deck,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
       {s=null;return;}
-    s={x:t.clientX,y:t.clientY,t:Date.now(),lock:null,dx:0};},{passive:true});
-  document.addEventListener('touchmove',e=>{if(!s)return;if(e.touches.length>1){s=null;swSet(0,SW_MS);swPeek(0,0);return;}const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
-    if(s.lock===null){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;s.lock=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';}
-    if(s.lock!=='x')return;
-    e.preventDefault(); // לא לגלול את הדף בזמן דפדוף אופקי
-    const dir=dx>0?1:-1,edge=(viewDay+dir<1||viewDay+dir>49);
-    s.dx=edge?dx*.25:dx;swSet(s.dx,0);swPeek(edge?0:dir,Math.abs(dx)/120);},{passive:false});
-  const end=e=>{if(!s)return;const st=s;s=null;swPeek(0,0);if(st.lock!=='x')return;
+    s={x:t.clientX,y:t.clientY,t:Date.now(),lock:null,dx:0,D:null};},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!s)return;
+    if(e.touches.length>1){if(s.D)deckPose(s.D,0,SW_MS);s=null;return;}
+    const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
+    if(s.lock===null){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;s.lock=Math.abs(dx)>Math.abs(dy)?'x':'y';if(s.lock==='x')s.D=deck();}
+    if(s.lock!=='x'||!s.D)return;
+    if(e.cancelable)e.preventDefault(); // לא לגלול את הדף בזמן דפדוף אופקי
+    const edge=(viewDay+(dx>0?1:-1)<1||viewDay+(dx>0?1:-1)>49);
+    s.dx=edge?dx*.25:dx;deckPose(s.D,s.dx,0);},{passive:false});
+  const end=()=>{if(!s)return;const st=s;s=null;if(st.lock!=='x'||!st.D)return;
     const v=Math.abs(st.dx)/Math.max(1,Date.now()-st.t),dir=st.dx>0?1:-1;
-    if(Math.abs(st.dx)>70||(v>.5&&Math.abs(st.dx)>30)){
-      if(viewDay+dir<1||viewDay+dir>49){swSet(0,SW_MS);toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');return;}
-      stepDay(dir,true);
-    }else swSet(0,SW_MS);};
+    if(Math.abs(st.dx)>st.D.W*.25||(v>.45&&Math.abs(st.dx)>30)){
+      if(viewDay+dir<1||viewDay+dir>49){deckPose(st.D,0,SW_MS);toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');return;}
+      const ms=Math.round(SW_MS*Math.max(.45,1-Math.abs(st.dx)/st.D.W));
+      swBusy=true;deckPose(st.D,dir*st.D.W,ms);
+      setTimeout(()=>{viewDay+=dir;ReactDOM.flushSync(()=>render());deckPose(deck(),0,0);swFadePanel();swBusy=false;},ms+10);
+    }else deckPose(st.D,0,SW_MS);};
   document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
   // לחיצה שנגמרה בדפדוף לא תפעיל כפתור
-  document.addEventListener('click',e=>{if(swBusy&&e.target.closest('.hero,#panel')){e.stopPropagation();e.preventDefault();}},true);
+  document.addEventListener('click',e=>{if(swBusy&&e.target.closest('.hero-deck,#panel')){e.stopPropagation();e.preventDefault();}},true);
 })();
+// כרטיס "נייר" של אתמול/מחר — רק לתצוגה בזמן הדפדוף (לא פעיל, לא ניתן למיקוד)
+const inertRef=el=>{if(el)el.setAttribute('inert','');};
+function GhostCard({n,side}){if(n<1||n>49)return null;
+  const when=n===ST.target?(ST.night?'הלילה סופרים':'הערב נספור'):n===ST.inProg?'היום — נספר אמש':'תצוגת יום';
+  return h('div',{className:'hero-ghost '+side,'aria-hidden':'true',ref:inertRef},h(DayHero,{day:n,nusach:S.nusach,nikud:S.nikud,when}));}
+function HeroDeck(){return h('div',{className:'hero-deck'},h('div',{className:'hero-track'},
+  h('div',{className:'hero-cur'},h(Hero)),h(GhostCard,{key:'next',n:viewDay+1,side:'next'}),h(GhostCard,{key:'prev',n:viewDay-1,side:'prev'})));}
 
 /* ============ PINCH ZOOM = TEXT SIZE ============ */
 // צביטה בשתי אצבעות משנה את גודל הטקסט של האפליקציה (0.8–1.4, בצעדים של 0.1) — הטקסט נשבר מחדש
@@ -577,7 +588,7 @@ function App(){
       h(StatusBar,{items:status}),
       h(UpdateBanner),
       h(PreviewBanner),
-      h(Hero),
+      h(HeroDeck),
       h(Dedic),
       h(QuoteOfDay),
       h('div',{className:'tabs-sticky'+(UI.mini?' stuck':'')},h(Tabs,{items:[{id:'sid',label:'סדר הספירה'},{id:'men',label:'מנורה'},{id:'trk',label:'המעקב שלי'}],value:tab,onChange:goTab})),
