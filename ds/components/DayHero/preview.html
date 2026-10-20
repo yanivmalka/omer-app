@@ -1,0 +1,68 @@
+<!-- @dsCard group="Day" width=900 height=700 -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  body{margin:0;padding:16px;background:var(--bg)}
+  .pv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start}
+  .pv-cell{border:1px solid var(--line);border-radius:var(--radius-box);padding:12px;min-width:0;overflow:hidden}
+  .pv-cell>h4{margin:0 0 8px;font:600 12px var(--sans);color:var(--muted);letter-spacing:.04em}
+</style></head><body>
+<div class="pv-grid" id="g"></div>
+<script>
+(function(){
+  var R=window.React, ds_exports=window.OmerDS;
+  function np(p,k){var o={};for(var x in p)if(x!=="children")o[x]=p[x];if(k!==void 0)o.key=k;return o}
+  var import_jsx_runtime={
+    jsx:function(t,p,k){var c=p&&p.children;return c===void 0?R.createElement(t,np(p,k)):R.createElement(t,np(p,k),c)},
+    jsxs:function(t,p,k){return R.createElement.apply(R,[t,np(p,k)].concat(p.children))},
+    Fragment:R.Fragment
+  };
+  var Tonight = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    ds_exports.DayHero,
+    {
+      day: 33,
+      when: "הלילה סופרים",
+      yesterday: true,
+      actions: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Button, { children: "סמן כהושלם" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Button, { variant: "ghost", size: "small", children: "שתף" })
+      ] })
+    }
+  );
+  var Completed = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    ds_exports.DayHero,
+    {
+      day: 7,
+      nusach: "ashk",
+      when: "הלילה סופרים",
+      yesterday: true,
+      actions: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Button, { variant: "done", children: "✓ הושלם" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Button, { variant: "ghost", size: "small", children: "שתף" })
+      ] })
+    }
+  );
+  var MissedWarning = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.DayHero, { day: 18, when: "היום — נספר אמש", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Banner, { tone: "warn", title: "ממשיכים לספור בלי ברכה.", children: 'לפי הרשום, חסר יום שלם בספירה. נוהגים לשמוע את הברכה מהש"ץ ולענות אמן. במקרה של ספק — שאל רב.' }) });
+  var FirstNight = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    ds_exports.DayHero,
+    {
+      day: 1,
+      nusach: "sefard",
+      nikud: false,
+      when: "הלילה סופרים",
+      yesterday: true,
+      actions: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ds_exports.Button, { children: "סמן כהושלם" })
+    }
+  );
+  var stories=[["Tonight",Tonight],["Completed",Completed],["MissedWarning",MissedWarning],["FirstNight",FirstNight]];
+  var theme=document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light";
+  var g=document.getElementById("g");
+  stories.forEach(function(s,i){
+    var cell=document.createElement("section");cell.className="pv-cell";
+    var h=document.createElement("h4");h.textContent=s[0];
+    var mount=document.createElement("div");cell.appendChild(h);cell.appendChild(mount);g.appendChild(cell);
+    try{window.ReactDOM.createRoot(mount).render(R.createElement(ds_exports.OmerRoot,{theme:theme},R.createElement(s[1])))}
+    catch(e){mount.textContent="\u26a0 "+(e&&e.message||e)}
+  });
+})();
+</script></body></html>

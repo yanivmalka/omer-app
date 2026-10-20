@@ -1,0 +1,46 @@
+PrayerSection from @omer/ds. Use via `window.OmerDS.PrayerSection` (bundle loaded from `components/bundle.js`). Wrap the tree in `<OmerRoot>` (full provider chain in the system's README.md — components read theme/i18n from that context).
+
+## Props
+
+```ts
+interface PrayerSectionProps {
+  /** Small muted heading, e.g. "ברכה", "הספירה", "לשם יחוד". */
+  title?: React.ReactNode;
+  /** text = serif prayer paragraph; blessing = bold; count = the gold count line. */
+  variant?: "text" | "blessing" | "count";
+  note?: React.ReactNode;
+  /** Extra content after the paragraph (e.g. the הרחמן line as a second blessing-weight <p>). */
+  after?: React.ReactNode;
+  headerAction?: React.ReactNode;
+  children?: React.ReactNode;
+}
+```
+
+## Examples
+
+### BlessingAndCount
+
+```jsx
+() => (
+  <div style={{ width: 420 }}><Siddur>
+    <PrayerSection title="ברכה" variant="blessing">בָּרוּךְ אַתָּה יְיָ אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, אֲשֶׁר קִדְּשָׁנוּ בְּמִצְוֹתָיו וְצִוָּנוּ עַל סְפִירַת הָעֹמֶר.</PrayerSection>
+    <PrayerSection title="הספירה" variant="count" note="כוונה: הוֹד שֶׁבְּהוֹד"
+      after={<p className="blessing" style={{ marginTop: 10 }}>הָרַחֲמָן הוּא יַחֲזִיר לָנוּ עֲבוֹדַת בֵּית הַמִּקְדָּשׁ לִמְקוֹמָהּ, בִּמְהֵרָה בְיָמֵינוּ, אָמֵן סֶלָה.</p>}>
+      הַיּוֹם שְׁלֹשָׁה וּשְׁלֹשִׁים יוֹם לָעֹמֶר, שֶׁהֵם אַרְבָּעָה שָׁבוּעוֹת וַחֲמִשָּׁה יָמִים.
+    </PrayerSection>
+  </Siddur></div>
+)
+```
+
+### PsalmWithAction
+
+```jsx
+() => (
+  <div style={{ width: 420 }}><Siddur>
+    <PrayerSection title="למנצח (תהלים סז)" headerAction={<LinkButton icon="menorah">בצורת המנורה</LinkButton>}
+      note={<>מכוונים למילה <Highlight soft>אֱלֹהִים</Highlight> — המילה ה־33 במזמור.</>}>
+      יוֹדוּךָ עַמִּים <Highlight>אֱלֹהִים</Highlight> יוֹדוּךָ עַמִּים כֻּלָּם.
+    </PrayerSection>
+  </Siddur></div>
+)
+```

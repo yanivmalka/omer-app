@@ -1,0 +1,50 @@
+/* מעטפת הדף בלבד: כל העיצוב עצמו מגיע ממערכת העיצוב (ds/components/bundle.css) */
+:root{--safe-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));--safe-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));--mini-h:60px}
+/* באפליקציית אנדרואיד (edge-to-edge) Capacitor מזריק --safe-area-inset-*; ב־WebView ישנים env() מחזיר 0 */
+html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-sizing:border-box}
+.mini{padding-top:calc(6px + var(--safe-top))}
+.autobar{bottom:calc(14px + var(--safe-bottom))}
+/* הכרטיסיות (נוסח / מנורה / מעקב) נצמדות מתחת לסרגל המקוצר בזמן גלילה, כדי לעבור תצוגה מכל מקום */
+.tabs-sticky{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -4px;padding:0 4px}
+.tabs-sticky .tabs{margin:14px 0 12px}
+.tabs-sticky.stuck{top:var(--mini-h)}
+.tabs-sticky.stuck .tabs{margin:6px 0 8px;box-shadow:0 4px 12px rgba(10,14,35,.10)}
+/* מעבר יום: כרטיס אחד; רק טקסט שמשתנה דועך החוצה/פנימה (app.js). הדף לא זז הצידה */
+html,body{overflow-x:clip}
+.hero,#panel{touch-action:pan-y}
+/* גובה קבוע לאזורים שמתחלפים בין ימים (נמדד ב־stabilizeSizes) */
+.hero .count{min-height:var(--mh-count,auto)}
+.hero .daynum .of{min-height:var(--mh-of,auto)}
+.hero .kav > div{min-height:var(--mh-kav,auto)}
+#panel .countline{min-height:var(--mh-countline,auto)}
+/* כוונות היום: ספירה חצי, אנא בכח ולמנצח רבע כל אחת; מילים לא נשברות באמצע */
+.hero .kav{grid-template-columns:2fr 1fr 1fr}
+.hero .kav span{overflow-wrap:normal;word-break:normal;hyphens:none}
+.hero .kav>div:not(:first-child){padding:8px 7px}
+.hero .kav>div:not(:first-child) small{font-size:.8rem;white-space:nowrap}
+.kav-stack .hero .kav{grid-template-columns:1fr 1fr}
+.kav-stack .hero .kav>div:first-child{grid-column:1/-1}
+.hero .kav>div:nth-child(2) span{font-size:calc(1.15rem * var(--fs) / var(--ui) * var(--kav-fit-2,1))}
+.hero .kav>div:nth-child(3) span{font-size:calc(1.15rem * var(--fs) / var(--ui) * var(--kav-fit-3,1))}
+.hero,#panel,.mini{overflow-wrap:normal;word-break:normal;hyphens:none}
+/* פחות ריווח בשורת הספירה בנוסח */
+#panel .countline{line-height:1.6;padding:8px 12px}
+/* צביטה = גודל טקסט (app.js); זום הדפדפן חסום כדי שהמסך לא יזוז הצידה */
+html{touch-action:pan-x pan-y}
+.zoom-badge{position:fixed;left:50%;top:40%;z-index:9;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .15s;
+  background:var(--ink);color:var(--bg);border:2px solid var(--gold);border-radius:999px;padding:10px 18px;font-weight:700;white-space:nowrap}
+/* סוף הנוסח: הנעה לפעולה */
+.endcta{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:22px 0 6px;padding:18px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.endcta p{margin:0;color:var(--muted)}
+.endcta .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-text-size-adjust:100%}
+#app{min-height:100vh}
+/* החלקה אופקית (מעבר יום) לא תגרום לניווט "אחורה" של הדפדפן / גלילה אופקית של המנורה */
+html,body{overscroll-behavior-x:none}
+#panel .men-scroll{overflow-x:hidden;overscroll-behavior-x:none}
+/* שיתוף: אייקון קטן בקצה השמאלי של שורת הפעולות */
+.hero .row .share-btn{margin-inline-start:auto;color:var(--muted)}
+/* קו מנחה בגלילה במגע (נוצר ב־app.js) — זז עם התוכן, דועך כשמרימים את האצבע */
+.scroll-guide{position:absolute;left:0;right:0;height:2px;margin-top:-1px;z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--gold) 12%,var(--gold) 88%,transparent);opacity:.6;transition:opacity .6s ease}
+.scroll-guide.out{opacity:0}
