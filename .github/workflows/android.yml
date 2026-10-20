@@ -55,7 +55,17 @@ jobs:
 
       - name: Build release APK
         working-directory: android
-        run: ./gradlew --no-daemon assembleRelease -PversionCode=${{ github.run_number }} -PversionName=1.0.${{ github.run_number }}
+        run: |
+          set +e
+          ./gradlew --no-daemon --console=plain assembleRelease -PversionCode=${{ github.run_number }} -PversionName=1.0.${{ github.run_number }} > "$RUNNER_TEMP/gradle.log" 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            # surface the first errors as annotations so they are readable without log access
+            grep -nE "error:|FAILED|What went wrong|Could not|not found|Unresolved|Execution failed" -A3 "$RUNNER_TEMP/gradle.log" | head -25 | sed 's/^/::error::/' | tr '\n' '|' | sed 's/|/%0A/g' | sed 's/^/::error::/' | head -c 3500
+            echo
+            tail -30 "$RUNNER_TEMP/gradle.log"
+          fi
+          exit $code
 
       - name: Name the APK
         run: |
