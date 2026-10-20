@@ -739,12 +739,10 @@ var OmerDS = (() => {
         const c = pos(s + ws[i] / 2);
         s += ws[i] + gap;
         const ang = Math.atan2(-c.ty, -c.tx) * 180 / Math.PI, cls = idx === n ? "today" : idx < n ? "past" : "";
-        const wordG = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("g", { transform: `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${ang.toFixed(1)})`, children: [
+        words.push(/* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("g", { transform: `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${ang.toFixed(1)})`, children: [
           idx === n && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("rect", { className: "tbg", x: (-ws[i] / 2 - 6).toFixed(1), y: (-FS * 0.85).toFixed(1), width: (ws[i] + 12).toFixed(1), height: (FS * 1.75).toFixed(1), rx: 8 }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("text", { className: "mw " + cls, textAnchor: "middle", dominantBaseline: "central", direction: "rtl", children: t(w) })
-        ] });
-        // מילת היום עטופה בקבוצה בלי סיבוב — כדי שאפקט (למשל להבות) יעלה כלפי מעלה במסך ולא לאורך המילה
-        words.push(idx === n ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("g", { className: "mw-today-wrap", children: wordG }, idx) : React3.cloneElement(wordG, { key: idx }));
+        ] }, idx));
       });
       if (o === 0) base = v.slice(7).map((w) => {
         idx++;
@@ -787,10 +785,6 @@ var OmerDS = (() => {
     const style = { width: svgW.toFixed(0) + "px", margin: "0 auto", "--mfs": FS + "px", "--msfs": SFS + "px", "--mtfs": TFS + "px", "--mffs": FFS + "px", "--mcw": TW + "px" };
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "men-scroll", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { className: "menorah", viewBox: `0 0 ${VBW} ${VBH.toFixed(0)}`, role: "img", "aria-label": "\u05DE\u05D6\u05DE\u05D5\u05E8 \u05DC\u05DE\u05E0\u05E6\u05D7 \u05D1\u05E6\u05D5\u05E8\u05EA \u05D4\u05DE\u05E0\u05D5\u05E8\u05D4", style, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("defs", { dangerouslySetInnerHTML: { __html:
-          // סגנון "להבות אש": גרדיאנטים מהבהבים למילת היום ולקנה של היום (בשימוש רק כש־data-accent="fire")
-          `<linearGradient id="omerFireText" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d42200"/><stop offset=".3" stop-color="#ff5a00"><animate attributeName="offset" values=".28;.36;.3;.38;.28" dur="5s" repeatCount="indefinite"/></stop><stop offset=".62" stop-color="#ff9a00"><animate attributeName="offset" values=".58;.68;.62;.7;.58" dur="6s" repeatCount="indefinite"/></stop><stop offset="1" stop-color="#ffd040"><animate attributeName="stop-color" values="#ffd040;#ffe48a;#ffc430;#ffdc66;#ffd040" dur="4s" repeatCount="indefinite"/></stop></linearGradient>` +
-          `<linearGradient id="omerFireWash" gradientUnits="userSpaceOnUse" x1="0" y1="${STEM}" x2="0" y2="${TOP}"><stop offset="0" stop-color="rgba(255,60,0,.42)"/><stop offset=".5" stop-color="rgba(255,140,0,.3)"><animate attributeName="offset" values=".45;.55;.48;.52;.45" dur="7s" repeatCount="indefinite"/></stop><stop offset="1" stop-color="rgba(255,210,90,.22)"/></linearGradient>` } }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("text", { className: "mtop", x: CX, y: (TFS + 8).toFixed(1), textAnchor: "middle", direction: "rtl", children: t("\u05E9\u05B4\u05C1\u05D5\u05B4\u05BC\u05D9\u05EA\u05B4\u05D9 \u05D4\u05F3 \u05DC\u05B0\u05E0\u05B6\u05D2\u05B0\u05D3\u05B4\u05BC\u05D9 \u05EA\u05B8\u05DE\u05B4\u05D9\u05D3") }),
         chan,
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { className: "mbase", d: `M${CX - bw} ${STEM + 6} H${CX + bw} L${CX + bw + 35} ${STEM + 6 + bh} H${CX - bw - 35} Z` }),

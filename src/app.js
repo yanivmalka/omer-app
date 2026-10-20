@@ -329,34 +329,6 @@ function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
   addEventListener('scroll',()=>{if(!line)return;const r=line.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)kill(false);},{passive:true});
 })();
 
-/* ============ FIRE FILTERS ============ */
-// סגנון "להבות אש": מסנני SVG שמוסיפים לשונות אש סביב קווי המתאר של האותיות (רעש מתנודד לאט — כמו נר).
-// omerFlame לטקסט רגיל, omerFlameL לאות היום הגדולה. בלי תנועה כשהמכשיר מבקש להפחית תנועה.
-(function(){
-  const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const flt=(id,k)=>{const A=v=>(v*k).toFixed(2),f=(x,y)=>`${(x/k).toFixed(4)} ${(y/k).toFixed(4)}`;
-    const anim=still?'':`<animate attributeName="baseFrequency" values="${f(.13,.045)};${f(.145,.06)};${f(.12,.04)};${f(.13,.045)}" dur="8s" repeatCount="indefinite"/>`;
-    const up=(dy,a,r)=>`<feOffset in="d" dy="-${A(dy)}" result="o${r}"/><feColorMatrix in="o${r}" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ${a} 0" result="d${r}"/>`;
-    return `<filter id="${id}" x="-40%" y="-120%" width="180%" height="260%" color-interpolation-filters="sRGB">
-<feTurbulence type="fractalNoise" baseFrequency="${f(.13,.045)}" numOctaves="2" seed="7" result="n">${anim}</feTurbulence>
-<feMorphology in="SourceAlpha" operator="dilate" radius="${A(.6)}" result="d"/>${up(1.8,.7,1)}${up(3.6,.4,2)}${up(5.4,.18,3)}
-<feMerge result="stack"><feMergeNode in="d3"/><feMergeNode in="d2"/><feMergeNode in="d1"/><feMergeNode in="d"/></feMerge>
-<feDisplacementMap in="stack" in2="n" scale="${A(6)}" xChannelSelector="R" yChannelSelector="G" result="w"/>
-<feGaussianBlur in="w" stdDeviation="${A(1)}" result="wb"/>
-<feComponentTransfer in="wb" result="t"><feFuncA type="table" tableValues="0 .1 .55 .85 .9"/></feComponentTransfer>
-<feGaussianBlur in="w" stdDeviation="${A(3)}" result="ga"/>
-<feFlood flood-color="#ff4a00" flood-opacity=".22"/><feComposite in2="ga" operator="in" result="glow"/>
-<feFlood flood-color="#e83a00" flood-opacity=".85"/><feComposite in2="t" operator="in" result="red"/>
-<feMorphology in="t" operator="erode" radius="${A(.6)}" result="i1"/>
-<feFlood flood-color="#ff9a10"/><feComposite in2="i1" operator="in" result="orange"/>
-<feMorphology in="i1" operator="erode" radius="${A(.7)}" result="i2"/>
-<feFlood flood-color="#ffe680"/><feComposite in2="i2" operator="in" result="yellow"/>
-<feMerge><feMergeNode in="glow"/><feMergeNode in="red"/><feMergeNode in="orange"/><feMergeNode in="yellow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;};
-  const box=document.createElement('div');box.setAttribute('aria-hidden','true');box.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
-  box.innerHTML=`<svg width="0" height="0" focusable="false">${flt('omerFlame',.8)}${flt('omerFlameL',2)}</svg>`;
-  document.body.appendChild(box);
-})();
-
 /* ============ STABLE SIZES ============ */
 // גובה קבוע לאזורים שהטקסט שלהם מתחלף בין ימים (ספירה, כוונות, מקוצר, שורת הספירה בנוסח):
 // מודדים לכל יום ברוחב ובגודל הגופן הנוכחיים, ולוקחים את המקסימום בתוך כל שבוע (קבוצה של 7 ימים) — min-height.
@@ -673,8 +645,6 @@ function SettingsDialog(){
     S.remind?h(Field,{label:'תזכורות חוזרות',hint:'אחרי שעה, מאוחר בערב, ואם שכחת — בבוקר ולפני השקיעה. נעצר כשמסמנים "ספרתי".',htmlFor:'sRemMore'},
       h(Switch,{id:'sRemMore',checked:S.remindMore!==false,onChange:e=>{S.remindMore=e.target.checked;saveS();render();}})):null,
     S.remind?h(Field,{label:'בדיקה'},h(Button,{variant:'ghost',size:'small',onClick:testReminder},'שלח התראת ניסיון')):null,
-    h(Field,{label:'סגנון הדגשה',hint:'זהב, או להבות אש מהבהבות',htmlFor:'sAccent'},h('select',{id:'sAccent',value:S.accent||'gold',onChange:set('accent')},
-      h('option',{value:'gold'},'זהב'),h('option',{value:'fire'},'להבות אש'))),
     h(Field,{label:'ערכת צבע',htmlFor:'sTheme'},h('select',{id:'sTheme',value:S.theme,onChange:set('theme')},
       h('option',{value:'auto'},'לפי המכשיר'),h('option',{value:'light'},'בהירה'),h('option',{value:'dark'},'כהה'))),
     h(Field,{label:'תצוגה לפי תאריך אחר',hint:'לבדיקה ותצוגה מקדימה',htmlFor:'sSim'},
@@ -767,7 +737,6 @@ function App(){
   rerender=sync=>{if(sync===true)ReactDOM.flushSync(()=>setV(v=>v+1));else setV(v=>v+1);};
   useLayoutEffect(()=>{
     if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
-    document.documentElement.setAttribute('data-accent',S.accent==='fire'?'fire':'gold'); // סגנון הדגשה: זהב / להבות אש
   });
   useLayoutEffect(()=>{ // אנימציית דפדוף בין ימים + גובה הסרגל המקוצר (לכרטיסיות הצמודות)
     const m=document.querySelector('.mini');if(m)document.documentElement.style.setProperty('--mini-h',m.offsetHeight+'px');

@@ -251,30 +251,3 @@ dialog.omer-dialog::backdrop{background:rgba(10,14,35,.55)}
 .grp .chev{display:inline-flex}
 .ask-item .seg button{white-space:nowrap}
 .dlg:focus{outline:none}
-
-/* ===== סגנון הדגשה "להבות אש" (html[data-accent="fire"]) — לשונות אש מתנודדות סביב קווי המתאר של האותיות (כמו נר), המילוי נשאר גחלת כהה.
-   המסננים (#omerFlame, #omerFlameL) מוזרקים למסמך ב־app.js (FIRE FILTERS). ===== */
-:root[data-accent="fire"],:root[data-accent="fire"] .omer-root{
-  --gold:#C2410C; --gold-strong:#9A2D06; --gold-wash:#FFE9D8; --on-gold:#FFF8F0; --ember:#7A1E00;
-}
-@media (prefers-color-scheme:dark){
-  :root[data-accent="fire"]:not([data-theme="light"]),:root[data-accent="fire"]:not([data-theme="light"]) .omer-root{
-    --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.12); --on-gold:#1A0800; --ember:#8A2400;
-  }
-}
-:root[data-accent="fire"][data-theme="dark"],:root[data-accent="fire"][data-theme="dark"] .omer-root{
-  --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.12); --on-gold:#1A0800; --ember:#8A2400;
-}
-[data-accent="fire"] .daynum .n{color:var(--ember);filter:url(#omerFlameL)}
-[data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on,
-[data-accent="fire"] .hl,[data-accent="fire"] .hl-soft,[data-accent="fire"] .firstl,[data-accent="fire"] .ac,
-[data-accent="fire"] .kav > div > span,[data-accent="fire"] .countline .cl-text,[data-accent="fire"] .men-caption b{
-  color:var(--ember);background:none;box-shadow:none;filter:url(#omerFlame);font-weight:700}
-[data-accent="fire"] .kav .acr-k .l.on,[data-accent="fire"] .acr .l.on{display:inline-block}
-/* משבצת אנא בכח: רק האות של היום בוערת; שאר השם רגיל */
-[data-accent="fire"] .kav > div:nth-child(2) > span{filter:none;color:var(--muted)}
-[data-accent="fire"] .countline{background:var(--gold-wash)}
-[data-accent="fire"] .menorah .tbg:not(.soft){fill:none}
-[data-accent="fire"] .menorah .mw.today,[data-accent="fire"] .menorah .today-t{fill:var(--ember);font-weight:800}
-[data-accent="fire"] .menorah .mw-today-wrap,[data-accent="fire"] .menorah .today-t{filter:url(#omerFlame)}
-[data-accent="fire"] .menorah .mside .lon{fill:var(--gold)}
