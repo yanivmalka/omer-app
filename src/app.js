@@ -193,11 +193,13 @@ const atPath=(root,path)=>path.reduce((el,i)=>el&&el.children[i],root);
 function dayRoots(){return [document.querySelector('.hero'),document.getElementById('panel')];}
 function shadowRender(n){ // מרנדר את היום n מחוץ למסך ומחזיר [hero, panel] להשוואה
   const box=document.createElement('div'),root=ReactDOM.createRoot(box),keep=viewDay;
-  box.style.cssText='position:absolute;left:-99999px;top:0;width:'+(document.querySelector('.wrap')||document.body).clientWidth+'px;visibility:hidden';
-  document.body.appendChild(box);viewDay=n;
+  // עטיפה fixed בגודל 0 עם overflow:hidden — כך הצל לא משנה את אזור הגלילה של המסמך (מיקום מחוץ למסך ב־RTL איפס את הגלילה)
+  const outer=document.createElement('div');outer.style.cssText='position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none;contain:strict';
+  box.style.cssText='position:absolute;left:0;top:0;width:'+(document.querySelector('.wrap')||document.body).clientWidth+'px';
+  outer.appendChild(box);document.body.appendChild(outer);viewDay=n;
   try{ReactDOM.flushSync(()=>root.render(h('div',null,h('div',{className:'sh-hero'},h(Hero)),h('div',{className:'sh-panel'},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab)))));}
   finally{viewDay=keep;}
-  return {hero:box.querySelector('.sh-hero').firstElementChild,panel:box.querySelector('.sh-panel'),done:()=>{root.unmount();box.remove();}};
+  return {hero:box.querySelector('.sh-hero').firstElementChild,panel:box.querySelector('.sh-panel'),done:()=>{root.unmount();outer.remove();}};
 }
 function setFade(els,op,ms){els.forEach((el,i)=>{if(!el||!el.style)return;
   el.style.transition=ms?`opacity ${ms}ms ease ${Math.min(i*STAGGER,STAGGER_MAX)}ms`:'none';el.style.opacity=String(op);});}
