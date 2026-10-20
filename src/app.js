@@ -413,8 +413,8 @@ function Hero(){
   if(isCurrent){
     const done=T()[vd]==='y';
     acts.push(h(Button,{key:'mark',variant:done?'done':'primary',onClick:()=>{if(done)delete T()[vd];else T()[vd]='y';saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');}},done?'✓ הושלם':'סמן כהושלם'));
-  }else if(vd<(ST.target||ST.inProg||0)){
-    // יום שעבר (גם במצב בדיקה): אפשר לסמן/לבטל, ולחזור להיום
+  }else if(vd<(ST.target||ST.inProg||0)||S.sim){
+    // יום שעבר — או כל יום במצב בדיקה (S.sim): אפשר לסמן/לבטל, ולחזור להיום
     const done=T()[vd]==='y';
     acts.push(h(Button,{key:'mark',variant:done?'done':'primary',size:'small',onClick:()=>{if(done)delete T()[vd];else T()[vd]='y';saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');}},done?'✓ הושלם':'סמן כהושלם'));
     acts.push(h(Button,{key:'home',size:'small',variant:'ghost',onClick:()=>changeDay(homeDay(),true)},'חזרה להיום'));
@@ -488,17 +488,18 @@ function SiddurTab(){
 
 // סוף הנוסח: סימון היום, מעבר למעקב, ותזכורת להזכיר את בעל ההקדשה (כשיש מאגר הקדשות)
 function EndCTA({n}){
-  const live=n===ST.target||n===ST.inProg,done=T()[n]==='y',d=DB&&DEDS.length?curDed():null;
+  const home=n===ST.target||n===ST.inProg,done=T()[n]==='y',d=DB&&DEDS.length?curDed():null;
+  const live=home||n<(ST.target||ST.inProg||0)||!!S.sim; // אפשר לסמן: היום, יום שעבר, או כל יום במצב בדיקה
   const toTracker=()=>goTab('trk');
   return h('div',{className:'endcta'},
     live&&!done?h(Fragment,null,h('p',null,'סיימת את הספירה?'),
       h(Button,{onClick:()=>{T()[n]='y';saveT();render();toast('נרשם כהושלם');}},'סיימתי — סמן כהושלם')):
-    live&&done?h('p',null,'✓ הספירה של היום נרשמה'):h('p',null,`עיון ביום ${gem(n)}`),
+    live&&done?h('p',null,home?'✓ הספירה של היום נרשמה':`✓ יום ${gem(n)} נרשם`):h('p',null,`עיון ביום ${gem(n)}`),
     d?h('p',null,'הזכר בתפילתך: ',h('b',null,`${d.purpose||''} ${d.name||''}`.trim()),' ',
       h(TextButton,{onClick:()=>{const el=document.querySelector('.dedic');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}},'לכרטיס')):null,
     h('div',{className:'row'},
       h(Button,{variant:live&&!done?'ghost':'primary',onClick:toTracker},'למעקב שלי'),
-      !live&&(ST.target||ST.inProg)?h(Button,{variant:'ghost',onClick:()=>{window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>changeDay(homeDay(),true),250);}},'חזרה להיום'):null));
+      !home&&(ST.target||ST.inProg)?h(Button,{variant:'ghost',onClick:()=>{window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>changeDay(homeDay(),true),250);}},'חזרה להיום'):null));
 }
 
 function MenorahTab(){
