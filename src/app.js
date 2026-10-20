@@ -290,24 +290,38 @@ const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNative
 const UPD_REPO='yanivmalka/omer-app';
 let Updater=null;try{if(NATIVE)Updater=Capacitor.registerPlugin('OmerUpdater');}catch(e){console.error(e);}
 const UPD={cur:null,status:'idle',latestCode:0,url:'',pct:0,msg:''};
+const withTimeout=(p,ms)=>Promise.race([Promise.resolve(p),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+// הגרסה המותקנת: מהפלאגין, ואם הוא לא עונה — מספר הבנייה שנכתב ל־index.html בזמן הבנייה (OMER_BUILD)
+async function loadVersion(){
+  if(UPD.cur)return UPD.cur;
+  try{const v=await withTimeout(Updater.getVersion(),4000);if(v&&+v.versionCode){UPD.cur={versionName:v.versionName,versionCode:+v.versionCode};return UPD.cur;}}
+  catch(e){UPD.verErr=(e&&e.message)||String(e);}
+  if(window.OMER_BUILD){UPD.cur={versionName:'1.0.'+window.OMER_BUILD,versionCode:+window.OMER_BUILD};return UPD.cur;}
+  return null;
+}
 if(NATIVE&&Updater){
   try{
-    Promise.resolve(Updater.getVersion()).then(v=>{UPD.cur=v;rerender();autoCheckUpdate();}).catch(()=>{});
+    loadVersion().then(v=>{rerender();if(v)autoCheckUpdate();});
     Promise.resolve(Updater.addListener('progress',e=>{UPD.pct=e.percent||0;rerender();})).catch(()=>{});
   }catch(e){console.error(e);}
 }
 async function checkUpdate(silent){
-  if(!NATIVE||!UPD.cur||UPD.status==='checking'||UPD.status==='downloading')return;
+  if(!NATIVE||UPD.status==='checking'||UPD.status==='downloading')return;
   if(!silent){UPD.status='checking';UPD.msg='';rerender();}
   try{
-    const r=await fetch(`https://api.github.com/repos/${UPD_REPO}/releases/latest`,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
-    if(!r.ok)throw new Error('http '+r.status);
+    const cur=await loadVersion();
+    if(!cur)throw new Error('לא ניתן לקרוא את הגרסה המותקנת'+(UPD.verErr?' ('+UPD.verErr+')':''));
+    const r=await withTimeout(fetch(`https://api.github.com/repos/${UPD_REPO}/releases/latest`,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}}),15000);
+    if(!r.ok)throw new Error('GitHub '+r.status);
     const rel=await r.json(),code=parseInt(String(rel.tag_name||'').replace(/\D/g,''))||0;
     const apk=(rel.assets||[]).find(a=>/\.apk$/i.test(a.name));
     store.set('omer-upd-check',Date.now());
-    if(apk&&code>UPD.cur.versionCode){UPD.status='avail';UPD.latestCode=code;UPD.url=apk.browser_download_url;UPD.msg='';}
-    else if(!silent)UPD.status='none';
-  }catch(e){if(!silent){UPD.status='error';UPD.msg='לא ניתן לבדוק עדכון כרגע. בדוק חיבור לאינטרנט.';}}
+    if(apk&&code>cur.versionCode){UPD.status='avail';UPD.latestCode=code;UPD.url=apk.browser_download_url;UPD.msg='';if(!silent)toast('נמצאה גרסה חדשה');}
+    else if(!silent){UPD.status='none';toast('האפליקציה מעודכנת');}
+  }catch(e){
+    if(!silent){UPD.status='error';UPD.msg='הבדיקה נכשלה: '+((e&&e.message)||e);toast('בדיקת העדכון נכשלה');}
+    else UPD.status='idle';
+  }
   rerender();
 }
 function autoCheckUpdate(){const last=store.get('omer-upd-check',0);if(Date.now()-last>6*36e5)checkUpdate(true);}

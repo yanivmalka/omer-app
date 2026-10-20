@@ -34,6 +34,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Install and sync web assets
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
         run: |
           npm ci
           npm run www
