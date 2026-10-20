@@ -227,8 +227,8 @@ var OmerDS = (() => {
   function FontSizeControl({ value, onChange, size = "sm" }) {
     const set = (v) => onChange?.(Math.min(1.4, Math.max(0.8, +v.toFixed(1))));
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "tools", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconButton, { size, label: "\u05D4\u05E7\u05D8\u05DF \u05D8\u05E7\u05E1\u05D8", disabled: value <= 0.8, onClick: () => set(value - 0.1), children: "\u05D0\u2212" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconButton, { size, label: "\u05D4\u05D2\u05D3\u05DC \u05D8\u05E7\u05E1\u05D8", disabled: value >= 1.4, onClick: () => set(value + 0.1), children: "\u05D0+" })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconButton, { size, label: "\u05D4\u05D2\u05D3\u05DC \u05D8\u05E7\u05E1\u05D8", disabled: value >= 1.4, onClick: () => set(value + 0.1), children: "\u05D0+" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(IconButton, { size, label: "\u05D4\u05E7\u05D8\u05DF \u05D8\u05E7\u05E1\u05D8", disabled: value <= 0.8, onClick: () => set(value - 0.1), children: "\u05D0\u2212" })
     ] });
   }
   function Switch({ className, ...rest }) {
