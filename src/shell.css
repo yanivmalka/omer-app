@@ -1,4 +1,19 @@
 /* מעטפת הדף בלבד: כל העיצוב עצמו מגיע ממערכת העיצוב (ds/components/bundle.css) */
-html{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+:root{--safe-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));--safe-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));--mini-h:60px}
+/* באפליקציית אנדרואיד (edge-to-edge) Capacitor מזריק --safe-area-inset-*; ב־WebView ישנים env() מחזיר 0 */
+html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-sizing:border-box}
+.mini{padding-top:calc(6px + var(--safe-top))}
+.autobar{bottom:calc(14px + var(--safe-bottom))}
+/* הכרטיסיות (נוסח / מנורה / מעקב) נצמדות מתחת לסרגל המקוצר בזמן גלילה, כדי לעבור תצוגה מכל מקום */
+.tabs-sticky{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -4px;padding:0 4px}
+.tabs-sticky .tabs{margin:14px 0 12px}
+.tabs-sticky.stuck{top:var(--mini-h)}
+.tabs-sticky.stuck .tabs{margin:6px 0 8px;box-shadow:0 4px 12px rgba(10,14,35,.10)}
+/* דפדוף בין ימים: היום הבא נכנס משמאל (RTL), הקודם מימין */
+@keyframes swNext{from{opacity:.35;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes swPrev{from{opacity:.35;transform:translateX(28px)}to{opacity:1;transform:none}}
+.swipe-next{animation:swNext .26s ease-out}
+.swipe-prev{animation:swPrev .26s ease-out}
+@media (prefers-reduced-motion:reduce){.swipe-next,.swipe-prev{animation:none}}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-text-size-adjust:100%}
 #app{min-height:100vh}

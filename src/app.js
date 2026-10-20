@@ -151,6 +151,32 @@ function Dedic(){
 }
 function QuoteOfDay(){if(!QUOTES.length)return null;const x=QUOTES[(viewDay-1)%QUOTES.length];return h(Quote,{text:x.text,source:x.source});}
 
+/* ============ PREVIEW (simulated date, for testing) ============ */
+const pad2=x=>String(x).padStart(2,'0');
+const toLocalInput=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+function setSim(v){S.sim=v;saveS();viewDay=null;askedThisSession=false;render();}
+function jumpToStart(){const o=ST.nextStart;if(!o)return;const tz=tzeit(o);
+  const d=tz?new Date(tz.getTime()+15*6e4):new Date(o.y,o.m-1,o.d,21,0);
+  setSim(toLocalInput(d));window.scrollTo({top:0,behavior:'smooth'});toast('מצב בדיקה: ליל היום הראשון לעומר');}
+function PreviewBanner(){if(!S.sim)return null;
+  return h(Banner,{tone:'warn',title:'מצב בדיקה'},`התצוגה לפי ${new Date(S.sim).toLocaleString('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}. `,
+    h(TextButton,{onClick:()=>{setSim('');toast('חזרה לתאריך האמיתי');}},'חזרה לתאריך האמיתי'));}
+
+/* ============ SWIPE BETWEEN DAYS ============ */
+// RTL: מחליקים ימינה (האצבע זזה שמאלה→ימינה) = היום הבא, כמו דפדוף בספר עברי; שמאלה = היום הקודם
+let swipeAnim='';
+function stepDay(d){const n=viewDay+d;if(n<1||n>49)return false;viewDay=n;swipeAnim=d>0?'swipe-next':'swipe-prev';render();setTimeout(()=>{swipeAnim='';},320);return true;}
+(function(){let s=null;
+  document.addEventListener('touchstart',e=>{const t=e.touches[0];
+    if(e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('button,a,input,select,textarea,.autobar,.tabs'))
+      {s=null;return;}
+    s={x:t.clientX,y:t.clientY,t:Date.now()};},{passive:true});
+  document.addEventListener('touchend',e=>{if(!s)return;const t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y,dt=Date.now()-s.t;s=null;
+    if(dt>700||Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;
+    if(String(getSelection&&getSelection())!=='')return;
+    if(!stepDay(dx>0?1:-1))toast(dx>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');},{passive:true});
+})();
+
 /* ============ HERO ============ */
 const hebStrPlus=o=>hebStr(addD(o,1));
 function Hero(){
@@ -185,10 +211,11 @@ function Hero(){
     banners.push(h(Banner,{key:'nob',tone:'warn',title:'ממשיכים לספור בלי ברכה.'},'לפי הרשום, חסר יום שלם בספירה. נוהגים לשמוע את הברכה מהש"ץ ולענות אמן. במקרה של ספק — שאל רב.'));
   }
   if(!active&&!ST.inProg&&ST.nextStart){
-    banners.push(h(Banner,{key:'next'},`הספירה הבאה מתחילה במוצאי יום טוב ראשון של פסח — ${new Date(ST.nextStart.y,ST.nextStart.m-1,ST.nextStart.d).toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'})} בערב. בינתיים אפשר לעיין בכל ימי הספירה.`));
+    banners.push(h(Banner,{key:'next'},`הספירה הבאה מתחילה במוצאי יום טוב ראשון של פסח — ${new Date(ST.nextStart.y,ST.nextStart.m-1,ST.nextStart.d).toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'})} בערב. בינתיים אפשר לעיין בכל ימי הספירה.`,
+      h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',variant:'ghost',onClick:jumpToStart},'קפוץ לתחילת הספירה (לבדיקה)'))));
   }
   return h(DayHero,{day:vd,nusach:S.nusach,nikud:S.nikud,when,
-    onPrev:()=>{if(viewDay>1){viewDay--;render();}},onNext:()=>{if(viewDay<49){viewDay++;render();}},
+    onPrev:()=>stepDay(-1),onNext:()=>stepDay(1),
     actions:h(Fragment,null,acts),yesterday:isCurrent&&!!active?true:null},banners);
 }
 
@@ -301,6 +328,19 @@ function UpdateBanner(){
     UPD.status==='avail'?h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',onClick:runUpdate},'עדכן עכשיו')):null);
 }
 
+/* ============ ANDROID BACK BUTTON ============ */
+// סדר: סגירת חלון פתוח → חזרה מהמנורה/מעקב לנוסח → אישור יציאה מהאפליקציה
+let AppPlugin=null;try{if(NATIVE)AppPlugin=Capacitor.registerPlugin('App');}catch(e){console.error(e);}
+async function onBack(){
+  if(UI.confirm){closeConfirm(false);return;}
+  if(UI.settings){UI.settings=false;rerender();return;}
+  if(UI.ask){closeAsk();return;}
+  if(tab!=='sid'){goTab('sid');return;}
+  if(await appConfirm('יציאה','לסגור את האפליקציה?','צא'))try{await AppPlugin.exitApp();}catch(e){}
+}
+if(AppPlugin)try{Promise.resolve(AppPlugin.addListener('backButton',onBack)).catch(()=>{});}catch(e){console.error(e);}
+window.__omerBack=onBack; // לבדיקות
+
 /* ============ DIALOGS ============ */
 function SettingsDialog(){
   const set=(k,fn=v=>v)=>e=>{S[k]=fn(e.target.type==='checkbox'?e.target.checked:e.target.value);saveS();render();};
@@ -393,18 +433,21 @@ function ConfirmDialog(){
 }
 
 /* ============ NAV ============ */
+function stickyOffset(){const m=document.querySelector('.mini'),t=document.querySelector('.tabs-sticky');return (m?m.offsetHeight:60)+(t?t.offsetHeight:50)+8;}
 let sidY=null,sidReturn=null; // מיקום הגלילה בנוסח, לחזרה בדיוק לאותו מקום
 function goTab(t,noScroll){if(t===tab)return;if(tab==='sid')sidY=scrollY;if(t==='sid'){sidReturn=null;}
   if(autoOn||autoMode){autoOn=false;autoMode=false;}
   tab=t;rerender(true);
   if(noScroll)return;
   if(t==='sid'&&sidY!==null){const y=sidY;requestAnimationFrame(()=>window.scrollTo({top:y}));}
-  else{const r=document.getElementById('panel').getBoundingClientRect();if(r.top<0)window.scrollTo({top:scrollY+r.top-80});}}
+  else{const r=document.getElementById('panel').getBoundingClientRect();if(r.top<0)window.scrollTo({top:scrollY+r.top-stickyOffset()});}}
 function toMenorah(){sidY=scrollY;sidReturn=sidY;tab='men';if(autoOn||autoMode){autoOn=false;autoMode=false;}rerender(true);
-  const r=document.getElementById('panel').getBoundingClientRect();window.scrollTo({top:scrollY+r.top-80});}
+  const r=document.getElementById('panel').getBoundingClientRect();window.scrollTo({top:scrollY+r.top-stickyOffset()});}
 
 /* ============ APP ============ */
 function toggleTheme(){const dark=S.theme==='dark'||(S.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);S.theme=dark?'light':'dark';saveS();render();}
+// הסרגל המקוצר מופיע כשכרטיס היום כבר מעל המסך
+function checkMini(){const hero=document.querySelector('.hero');if(!hero)return;const show=hero.getBoundingClientRect().bottom<0;if(show!==UI.mini){UI.mini=show;rerender();}}
 function openSettings(){UI.settings=true;rerender();}
 
 function App(){
@@ -413,17 +456,23 @@ function App(){
   useLayoutEffect(()=>{
     if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
   });
+  useLayoutEffect(()=>{ // אנימציית דפדוף בין ימים + גובה הסרגל המקוצר (לכרטיסיות הצמודות)
+    const hero=document.querySelector('.hero');if(hero){hero.classList.remove('swipe-next','swipe-prev');if(swipeAnim){void hero.offsetWidth;hero.classList.add(swipeAnim);}}
+    const m=document.querySelector('.mini');if(m)document.documentElement.style.setProperty('--mini-h',m.offsetHeight+'px');
+  });
+  useEffect(()=>{checkMini();}); // גם אחרי רינדור (מעבר כרטיסייה, שחזור גלילה), לא רק באירוע גלילה
   useEffect(()=>{ // הסרגל המקוצר לא ניתן למיקוד כשהוא מוסתר
     document.querySelectorAll('.mini button').forEach(b=>b.tabIndex=UI.mini?0:-1);
     const m=document.querySelector('.mini');if(m)m.setAttribute('aria-hidden',String(!UI.mini));
   });
   useEffect(()=>{
-    let raf=0;const check=()=>{raf=0;const hero=document.querySelector('.hero');if(!hero)return;const show=hero.getBoundingClientRect().bottom<0;if(show!==UI.mini){UI.mini=show;rerender();}};
+    let raf=0;const check=()=>{raf=0;checkMini();};
     const onScroll=()=>{if(!raf)raf=requestAnimationFrame(check);};
-    window.addEventListener('scroll',onScroll,{passive:true});
+    window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);
+    document.addEventListener('touchmove',onScroll,{passive:true});
     const onVis=()=>{if(!document.hidden)render();};document.addEventListener('visibilitychange',onVis);
     const iv=setInterval(()=>{const before=ST.target+'|'+ST.night;compute();if(before!==ST.target+'|'+ST.night){viewDay=null;render();}},60000);
-    return()=>{window.removeEventListener('scroll',onScroll);document.removeEventListener('visibilitychange',onVis);clearInterval(iv);};
+    return()=>{window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onScroll);document.removeEventListener('touchmove',onScroll);document.removeEventListener('visibilitychange',onVis);clearInterval(iv);};
   },[]);
 
   const L=loc(),status=[{label:L.name}];
@@ -438,11 +487,12 @@ function App(){
       h(AppHeader,{hebDate:(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t),fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings}),
       h(StatusBar,{items:status}),
       h(UpdateBanner),
+      h(PreviewBanner),
       h(Hero),
       h(Dedic),
       h(QuoteOfDay),
-      h(Tabs,{items:[{id:'sid',label:'סדר הספירה'},{id:'men',label:'מנורה'},{id:'trk',label:'המעקב שלי'}],value:tab,onChange:goTab}),
-      h(Panel,{id:'panel'},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab))),
+      h('div',{className:'tabs-sticky'+(UI.mini?' stuck':'')},h(Tabs,{items:[{id:'sid',label:'סדר הספירה'},{id:'men',label:'מנורה'},{id:'trk',label:'המעקב שלי'}],value:tab,onChange:goTab})),
+      h(Panel,{id:'panel',className:swipeAnim||undefined},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab))),
     tab==='sid'?h(AutoScrollBar,{playing:autoOn,speed:S.speed,onToggle:()=>autoOn?stopAuto():startAuto(),onSpeed:setSpeed}):null,
     h(SettingsDialog),h(AskDialog),h(ConfirmDialog),
     h(Toast,{message:UI.toast.msg,visible:UI.toast.show}));
