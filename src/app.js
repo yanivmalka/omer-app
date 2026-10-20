@@ -256,6 +256,49 @@ function TrackerTab(){
     h(HesedSummary,{entries}));
 }
 
+/* ============ APP UPDATE (Android APK only) ============ */
+// The APK is built by GitHub Actions and published as a GitHub Release (tag build-<N>, N = versionCode).
+// The native plugin OmerUpdater (android/.../OmerUpdaterPlugin.java) downloads it and opens Android's installer.
+const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const UPD_REPO='yanivmalka/omer-app';
+const Updater=NATIVE?Capacitor.registerPlugin('OmerUpdater'):null;
+const UPD={cur:null,status:'idle',latestCode:0,url:'',pct:0,msg:''};
+if(NATIVE){
+  Updater.getVersion().then(v=>{UPD.cur=v;rerender();autoCheckUpdate();}).catch(()=>{});
+  Updater.addListener('progress',e=>{UPD.pct=e.percent||0;rerender();});
+}
+async function checkUpdate(silent){
+  if(!NATIVE||!UPD.cur||UPD.status==='checking'||UPD.status==='downloading')return;
+  if(!silent){UPD.status='checking';UPD.msg='';rerender();}
+  try{
+    const r=await fetch(`https://api.github.com/repos/${UPD_REPO}/releases/latest`,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
+    if(!r.ok)throw new Error('http '+r.status);
+    const rel=await r.json(),code=parseInt(String(rel.tag_name||'').replace(/\D/g,''))||0;
+    const apk=(rel.assets||[]).find(a=>/\.apk$/i.test(a.name));
+    store.set('omer-upd-check',Date.now());
+    if(apk&&code>UPD.cur.versionCode){UPD.status='avail';UPD.latestCode=code;UPD.url=apk.browser_download_url;UPD.msg='';}
+    else if(!silent)UPD.status='none';
+  }catch(e){if(!silent){UPD.status='error';UPD.msg='לא ניתן לבדוק עדכון כרגע. בדוק חיבור לאינטרנט.';}}
+  rerender();
+}
+function autoCheckUpdate(){const last=store.get('omer-upd-check',0);if(Date.now()-last>6*36e5)checkUpdate(true);}
+async function runUpdate(){
+  if(!NATIVE||!UPD.url)return;
+  UPD.status='downloading';UPD.pct=0;UPD.msg='';rerender();
+  try{await Updater.downloadAndInstall({url:UPD.url});UPD.status='avail';UPD.msg='ההתקנה נפתחה. אשר אותה בחלון של אנדרואיד.';}
+  catch(e){
+    if(e&&e.message==='NEED_PERMISSION'){UPD.status='avail';UPD.msg='אפשר לאפליקציה להתקין עדכונים (מתג "התקנת אפליקציות לא מוכרות" שנפתח), חזור לכאן והקש שוב על "עדכן עכשיו".';}
+    else{UPD.status='avail';UPD.msg='ההורדה נכשלה. נסה שוב.';}
+  }
+  rerender();
+}
+const updText=()=>UPD.status==='checking'?'בודק…':UPD.status==='downloading'?`מוריד… ${UPD.pct}%`:UPD.status==='none'?'האפליקציה מעודכנת.':UPD.status==='avail'?`גרסה חדשה זמינה (${UPD.latestCode}).`:'';
+function UpdateBanner(){
+  if(!NATIVE||(UPD.status!=='avail'&&UPD.status!=='downloading'))return null;
+  return h(Banner,{title:'יש גרסה חדשה'},UPD.status==='downloading'?`מוריד… ${UPD.pct}%`:(UPD.msg||'אפשר לעדכן בלחיצה אחת.'),
+    UPD.status==='avail'?h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',onClick:runUpdate},'עדכן עכשיו')):null);
+}
+
 /* ============ DIALOGS ============ */
 function SettingsDialog(){
   const set=(k,fn=v=>v)=>e=>{S[k]=fn(e.target.type==='checkbox'?e.target.checked:e.target.value);saveS();render();};
@@ -283,6 +326,9 @@ function SettingsDialog(){
       h('option',{value:'auto'},'לפי המכשיר'),h('option',{value:'light'},'בהירה'),h('option',{value:'dark'},'כהה'))),
     h(Field,{label:'תצוגה לפי תאריך אחר',hint:'לבדיקה ותצוגה מקדימה',htmlFor:'sSim'},
       h('input',{id:'sSim',type:'datetime-local',value:S.sim||'',onChange:e=>{S.sim=e.target.value;saveS();viewDay=null;askedThisSession=false;render();}})),
+    NATIVE?h(Field,{label:'עדכון אפליקציה',hint:[UPD.cur?'גרסה '+UPD.cur.versionName:'',updText()||'',UPD.msg].filter(Boolean).join(' · ')},
+      UPD.status==='avail'?h(Button,{size:'small',onClick:runUpdate},'עדכן עכשיו'):
+      h(Button,{variant:'ghost',size:'small',disabled:UPD.status==='checking'||UPD.status==='downloading',onClick:()=>checkUpdate(false)},'בדוק עדכון')):null,
     h(Field,{label:'הגדרות משתמש',hint:'נוסח, תצוגה, מיקום ותזכורות'},h(Button,{variant:'ghost',size:'small',onClick:resetSettings},'אפס הגדרות')),
     h(Field,{label:'נתוני מעקב',hint:'ימים שסומנו, זמני קריאה ושמות שהוזכרו'},h(Button,{variant:'ghost',size:'small',onClick:resetData},'מחק הכל')));
 }
@@ -389,6 +435,7 @@ function App(){
     h('div',{className:'wrap'},
       h(AppHeader,{hebDate:(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t),fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings}),
       h(StatusBar,{items:status}),
+      h(UpdateBanner),
       h(Hero),
       h(Dedic),
       h(QuoteOfDay),

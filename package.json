@@ -1,0 +1,17 @@
+{
+  "name": "omer-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ספירת העומר — PWA + Android wrapper (Capacitor)",
+  "scripts": {
+    "www": "node scripts/build-www.mjs",
+    "sync": "npm run www && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}
