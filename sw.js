@@ -1,5 +1,5 @@
 // Service worker: מאפשר פתיחה ללא רשת אחרי הביקור הראשון
-const CACHE = 'omer-v3';
+const CACHE = 'omer-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './src/shell.css', './src/logic.js', './src/app.js',
   './ds/components/bundle.css', './ds/components/bundle.js',
@@ -12,9 +12,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // קבצי האפליקציה: רשת קודם (לעדכונים), מטמון כגיבוי. גופנים: מטמון קודם.
+  // קבצי האפליקציה: רשת קודם (לעדכונים, בלי מטמון ה־HTTP של GitHub Pages), מטמון כגיבוי. גופנים: מטמון קודם.
   if (url.origin === location.origin) {
-    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return r; })
+    e.respondWith(fetch(e.request, { cache: 'no-cache' }).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return r; })
       .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html'))));
   } else if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => { const c = res.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return res; })));
