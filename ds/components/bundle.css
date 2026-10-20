@@ -267,9 +267,9 @@ dialog.omer-dialog::backdrop{background:rgba(10,14,35,.55)}
   --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.14); --on-gold:#1A0800;
   --ft1:#D42200; --ft2:#FF5A00; --ft3:#FF9500; --ft4:#FFD040; --ft5:#FFF6C8; --fire-glow:rgba(255,110,20,.75);
 }
-/* הלהבה עולה: הגרדיאנט נע כלפי מעלה בקצב לא אחיד; הזוהר מרצד */
-@keyframes omer-rise{0%{background-position:50% 100%}18%{background-position:46% 70%}33%{background-position:54% 82%}52%{background-position:48% 40%}68%{background-position:53% 58%}84%{background-position:47% 15%}100%{background-position:50% 0%}}
-@keyframes omer-flick{0%,100%{filter:drop-shadow(0 0 2px var(--fire-glow)) brightness(1)}12%{filter:drop-shadow(0 -2px 5px var(--fire-glow)) brightness(1.15)}27%{filter:drop-shadow(0 0 1px var(--fire-glow)) brightness(.92)}41%{filter:drop-shadow(0 -3px 7px var(--fire-glow)) brightness(1.2)}58%{filter:drop-shadow(0 -1px 3px var(--fire-glow)) brightness(1)}76%{filter:drop-shadow(0 -4px 8px var(--fire-glow)) brightness(1.1)}88%{filter:drop-shadow(0 0 2px var(--fire-glow)) brightness(.95)}}
+/* כמו נר: הלהבה עולה ויורדת לאט, והזוהר מתנודד בעדינות */
+@keyframes omer-rise{0%{background-position:50% 100%}25%{background-position:49% 72%}50%{background-position:51% 50%}75%{background-position:49% 26%}100%{background-position:50% 0%}}
+@keyframes omer-flick{0%,100%{filter:drop-shadow(0 -1px 3px var(--fire-glow)) brightness(1)}30%{filter:drop-shadow(0 -2px 4px var(--fire-glow)) brightness(1.06)}55%{filter:drop-shadow(0 -1px 2px var(--fire-glow)) brightness(.97)}80%{filter:drop-shadow(0 -2px 5px var(--fire-glow)) brightness(1.04)}}
 [data-accent="fire"] .daynum .n,
 [data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on,
 [data-accent="fire"] .hl,[data-accent="fire"] .hl-soft,[data-accent="fire"] .firstl,[data-accent="fire"] .ac,
@@ -277,18 +277,18 @@ dialog.omer-dialog::backdrop{background:rgba(10,14,35,.55)}
   background:linear-gradient(to top,var(--ft1) 0%,var(--ft2) 18%,var(--ft3) 36%,var(--ft4) 55%,var(--ft5) 72%,var(--ft3) 86%,var(--ft2) 100%);
   background-size:100% 320%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   box-shadow:none;border-radius:0;
-  animation:omer-rise 2.1s cubic-bezier(.4,.1,.6,.9) infinite,omer-flick 1.7s steps(1,end) infinite;will-change:background-position,filter}
+  animation:omer-rise 7s ease-in-out infinite alternate,omer-flick 3.6s ease-in-out infinite;will-change:background-position,filter}
 /* האות/המילה של היום: קצב קצת שונה בכל אחת — שלא ירצדו יחד כמו מכונה */
-[data-accent="fire"] .kav > div:nth-child(2) > span{animation-duration:1.8s,1.4s}
-[data-accent="fire"] .kav > div:nth-child(3) > span{animation-duration:2.4s,1.9s}
-[data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on{font-weight:800;animation-duration:1.5s,1.2s}
+[data-accent="fire"] .kav > div:nth-child(2) > span{animation-duration:6.2s,3.1s}
+[data-accent="fire"] .kav > div:nth-child(3) > span{animation-duration:7.8s,4.2s}
+[data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on{font-weight:800;animation-duration:5.5s,2.8s}
 [data-accent="fire"] .acr .l.on{font-size:1.2em}
 /* בתוך משבצת שכבר בוערת — האותיות הלא מודגשות כהות (גחלים) */
 [data-accent="fire"] .kav .acr-k .l:not(.on){-webkit-text-fill-color:var(--muted);color:var(--muted)}
-[data-accent="fire"] .hero::before{background:linear-gradient(90deg,transparent,var(--ft2),var(--ft4),var(--ft2),transparent);background-size:200% 100%;animation:omer-rise 2.4s linear infinite alternate}
+[data-accent="fire"] .hero::before{background:linear-gradient(90deg,transparent,var(--ft2),var(--ft4),var(--ft2),transparent);background-size:200% 100%;animation:omer-rise 9s ease-in-out infinite alternate}
 /* מנורה: מילת היום, האותיות של היום ושם השבוע — טקסט באש (גרדיאנט SVG מרצד), בלי מלבן רקע */
 [data-accent="fire"] .menorah .tbg:not(.soft){fill:none}
 [data-accent="fire"] .menorah .tbg.soft{fill:var(--gold-wash)}
-[data-accent="fire"] .menorah .mw.today,[data-accent="fire"] .menorah .today-t,[data-accent="fire"] .menorah .mside .lon{fill:url(#omerFireText);font-weight:800;animation:omer-flick 1.5s steps(1,end) infinite}
+[data-accent="fire"] .menorah .mw.today,[data-accent="fire"] .menorah .today-t,[data-accent="fire"] .menorah .mside .lon{fill:url(#omerFireText);font-weight:800;animation:omer-flick 3.4s ease-in-out infinite}
 [data-accent="fire"] .menorah .chan.on{stroke:url(#omerFireWash)}
 @media (prefers-reduced-motion:reduce){[data-accent="fire"] *{animation:none!important}}
