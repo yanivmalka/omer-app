@@ -2,11 +2,10 @@ name: Android APK
 
 # Builds the APK on every push to main (and on demand) and publishes it as a GitHub Release.
 # The app checks the latest release for updates (tag build-<N>, N = versionCode).
-# מושהה לבקשת המשתמש: לא בונים APK אוטומטית בכל push. להפעלה מחדש — להחזיר את בלוק ה־push:
-#  push:
-#    branches: [main, android-apk]
-#    paths-ignore: ['**.md', 'docs/**']
 on:
+  push:
+    branches: [main, android-apk]
+    paths-ignore: ['**.md', 'docs/**']
   workflow_dispatch:
 
 permissions:
