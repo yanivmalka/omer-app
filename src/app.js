@@ -166,7 +166,8 @@ function PreviewBanner(){if(!S.sim)return null;
 // מעבר יום (החלקה / חיצים): כרטיס אחד שלא זז. היום החדש מרונדר קודם ב"צל" (React root מנותק),
 // משווים אותו לתצוגה הנוכחית, ורק אלמנטים שהתוכן שלהם משתנה דועכים החוצה ואז נכנסים מחדש — בסדר מלמעלה למטה.
 // טקסט קבוע (ברכה, לשם יחוד, תוויות, המזמור עצמו) לא מושפע; במזמור רק ההדגשה עוברת.
-const FADE_OUT=140,FADE_IN=220,STAGGER=14,STAGGER_MAX=160;let swBusy=false;
+// דעיכה מינימלית: הטקסט יורד רק ל־DIP (לא נעלם), מתחלף ועולה — תחושת המשכיות, בלי חור ריק
+const FADE_OUT=90,FADE_IN=170,DIP=.3,STAGGER=6,STAGGER_MAX=48;let swBusy=false;
 function ownText(el){let s='';for(const c of el.childNodes)if(c.nodeType===3)s+=c.nodeValue;return s;}
 function sigOf(el){return el.tagName+'|'+(el.getAttribute('class')||'')+'|'+(el.children.length?ownText(el):el.textContent);}
 // משווה עץ ישן מול עץ חדש. ילדים מותאמים לפי (תגית+class) והמופע ה־k שלהם, כך שכפתור/באנר שנוסף או הוסר
@@ -200,7 +201,8 @@ function shadowRender(n){ // מרנדר את היום n מחוץ למסך ומח
 }
 function setFade(els,op,ms){els.forEach((el,i)=>{if(!el||!el.style)return;
   el.style.transition=ms?`opacity ${ms}ms ease ${Math.min(i*STAGGER,STAGGER_MAX)}ms`:'none';el.style.opacity=String(op);});}
-function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
+function stepDay(d,animate){return changeDay(viewDay+d,animate);}
+function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
   if(!animate||swBusy||matchMedia('(prefers-reduced-motion: reduce)').matches){viewDay=n;render();return true;}
   swBusy=true;
   // P = {oh,op,nh,np}: נתיבים בכרטיס/בפאנל — ישנים (לדעיכה החוצה) וחדשים (לכניסה)
@@ -211,12 +213,12 @@ function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
     sh.done();
   }catch(e){console.error(e);P={oh:[[]],op:[],nh:[[]],np:[]};}
   const resolve=(hp,pp)=>{const [hr,pr]=dayRoots();return hp.map(p=>atPath(hr,p)).concat(pp.map(p=>atPath(pr,p))).filter(Boolean);};
-  const old=resolve(P.oh,P.op);setFade(old,0,FADE_OUT);
+  const old=resolve(P.oh,P.op);setFade(old,DIP,FADE_OUT);
   const outMs=FADE_OUT+Math.min(old.length*STAGGER,STAGGER_MAX);
   setTimeout(()=>{
     old.forEach(el=>{el.style.transition='';el.style.opacity='';});
     viewDay=n;ReactDOM.flushSync(()=>render());
-    const neu=resolve(P.nh,P.np);setFade(neu,0,0);void document.body.offsetHeight;setFade(neu,1,FADE_IN);
+    const neu=resolve(P.nh,P.np);setFade(neu,DIP,0);void document.body.offsetHeight;setFade(neu,1,FADE_IN);
     setTimeout(()=>{neu.forEach(el=>{if(el.style){el.style.transition='';el.style.opacity='';}});swBusy=false;},FADE_IN+STAGGER_MAX+40);
   },outMs);
   return true;}
@@ -232,6 +234,38 @@ function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
     const dir=dx>0?1:-1; // RTL: ימינה = היום הבא, שמאלה = הקודם
     if(!stepDay(dir,true))toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');},{passive:true});
 })();
+
+/* ============ STABLE SIZES ============ */
+// גובה קבוע לאזורים שהטקסט שלהם מתחלף בין ימים (ספירה, כוונות, מקוצר, שורת הספירה בנוסח):
+// מודדים את הגבוה ביותר מבין 49 הימים ברוחב ובגודל הגופן הנוכחיים, וקובעים min-height — כך שום דבר לא קופץ בדפדוף.
+let stableKey='';
+function stabilizeSizes(force){
+  const hero=document.querySelector('.hero');if(!hero)return;
+  const key=[hero.clientWidth,S.fs,S.nusach,S.nikud,tab].join('|');if(key===stableKey&&!force)return;stableKey=key;
+  const root=document.documentElement,box=document.createElement('div');
+  box.style.cssText='position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;contain:layout';
+  const ch=hero.cloneNode(true);ch.style.minHeight='';ch.querySelectorAll('[style]').forEach(e=>e.removeAttribute('style'));
+  box.appendChild(ch);hero.parentNode.appendChild(box);ch.style.width=hero.offsetWidth+'px';
+  const cl=document.querySelector('#panel .countline');let cc=null;
+  if(cl){cc=cl.cloneNode(true);cc.removeAttribute('style');const sw=document.createElement('div');sw.className=(cl.closest('.sid')||{}).className||'sid';
+    sw.style.width=cl.offsetWidth+'px';sw.appendChild(cc);box.appendChild(sw);} // הסגנון של countline תלוי ב־.sid
+  ['--mh-count','--mh-of','--mh-kav','--mh-countline'].forEach(v=>root.style.setProperty(v,'0px'));
+  const q=s=>ch.querySelector(s),kav=[...ch.querySelectorAll('.kav > div')],kavS=kav.map(d=>d.querySelector('span'));
+  const mx={count:0,of:0,kav:0,cl:0};
+  for(let n=1;n<=49;n++){const k=OmerDS.kav(n);
+    if(q('.count')){q('.count').textContent=tx(countText(n,S.nusach));mx.count=Math.max(mx.count,q('.count').offsetHeight);}
+    if(q('.daynum .n'))q('.daynum .n').textContent=gem(n);
+    if(q('.daynum .of')){q('.daynum .of').textContent=shortCount(n,S.nusach);mx.of=Math.max(mx.of,q('.daynum .of').offsetHeight);}
+    if(kavS.length===3){kavS[0].textContent=tx(k.sef);kavS[1].textContent=tx(k.ana);kavS[2].textContent=tx(k.ps.w);
+      kav.forEach(d=>{mx.kav=Math.max(mx.kav,d.offsetHeight);});}
+    if(cc){cc.textContent=tx(countText(n,S.nusach));mx.cl=Math.max(mx.cl,cc.offsetHeight);}
+  }
+  box.remove();
+  root.style.setProperty('--mh-count',mx.count+'px');root.style.setProperty('--mh-of',mx.of+'px');
+  root.style.setProperty('--mh-kav',mx.kav+'px');root.style.setProperty('--mh-countline',mx.cl+'px');
+}
+window.addEventListener('resize',()=>{clearTimeout(window.__stT);window.__stT=setTimeout(()=>stabilizeSizes(),150);});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>stabilizeSizes(true));
 
 /* ============ PINCH ZOOM = TEXT SIZE ============ */
 // צביטה בשתי אצבעות משנה את גודל הטקסט של האפליקציה (0.8–1.4, בצעדים של 0.1) — הטקסט נשבר מחדש
@@ -251,6 +285,7 @@ function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
 })();
 
 /* ============ HERO ============ */
+const homeDay=()=>ST.target||ST.inProg||1;
 const hebStrPlus=o=>hebStr(addD(o,1));
 function Hero(){
   const vd=viewDay,active=ST.target,isCurrent=vd===active;
@@ -264,8 +299,10 @@ function Hero(){
   if(isCurrent){
     const done=T()[vd]==='y';
     acts.push(h(Button,{key:'mark',variant:done?'done':'primary',onClick:()=>{if(done)delete T()[vd];else T()[vd]='y';saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');}},done?'✓ הושלם':'סמן כהושלם'));
-  }else if(active||ST.inProg){
-    acts.push(h(TextButton,{key:'back',onClick:()=>{viewDay=active||ST.inProg;render();}},'חזרה לספירה הנוכחית'));
+  }else if(vd!==homeDay()){
+    // חזרה ליום של היום (מחוץ לימי הספירה: ליום הראשון)
+    const home=homeDay();
+    acts.push(h(Button,{key:'home',size:'small',onClick:()=>changeDay(home,true)},active||ST.inProg?'חזרה להיום':'ליום הראשון'));
   }
   acts.push(h(Button,{key:'share',variant:'ghost',size:'small',onClick:()=>share(vd)},'שתף'));
   if((isCurrent||vd===ST.inProg)&&T()[vd]!=='y'){const at=actNode(vd);if(at)acts.push(h('div',{key:'act',className:'activity',style:{flexBasis:'100%'}},at));}
@@ -335,7 +372,7 @@ function EndCTA({n}){
       h(TextButton,{onClick:()=>{const el=document.querySelector('.dedic');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}},'לכרטיס')):null,
     h('div',{className:'row'},
       h(Button,{variant:live&&!done?'ghost':'primary',onClick:toTracker},'למעקב שלי'),
-      !live&&(ST.target||ST.inProg)?h(Button,{variant:'ghost',onClick:()=>{viewDay=ST.target||ST.inProg;render();window.scrollTo({top:0,behavior:'smooth'});}},'ליום הנוכחי'):null));
+      !live&&(ST.target||ST.inProg)?h(Button,{variant:'ghost',onClick:()=>{window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>changeDay(homeDay(),true),250);}},'חזרה להיום'):null));
 }
 
 function MenorahTab(){
@@ -577,6 +614,7 @@ function App(){
   useLayoutEffect(()=>{ // אנימציית דפדוף בין ימים + גובה הסרגל המקוצר (לכרטיסיות הצמודות)
     const m=document.querySelector('.mini');if(m)document.documentElement.style.setProperty('--mini-h',m.offsetHeight+'px');
   });
+  useLayoutEffect(()=>{stabilizeSizes();});
   useEffect(()=>{checkMini();}); // גם אחרי רינדור (מעבר כרטיסייה, שחזור גלילה), לא רק באירוע גלילה
   useEffect(()=>{ // הסרגל המקוצר לא ניתן למיקוד כשהוא מוסתר
     document.querySelectorAll('.mini button').forEach(b=>b.tabIndex=UI.mini?0:-1);

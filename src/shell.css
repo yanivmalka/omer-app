@@ -12,6 +12,11 @@ html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);p
 /* מעבר יום: כרטיס אחד; רק טקסט שמשתנה דועך החוצה/פנימה (app.js). הדף לא זז הצידה */
 html,body{overflow-x:clip}
 .hero,#panel{touch-action:pan-y}
+/* גובה קבוע לאזורים שמתחלפים בין ימים (נמדד ב־stabilizeSizes) */
+.hero .count{min-height:var(--mh-count,auto)}
+.hero .daynum .of{min-height:var(--mh-of,auto)}
+.hero .kav > div{min-height:var(--mh-kav,auto)}
+#panel .countline{min-height:var(--mh-countline,auto)}
 /* צביטה = גודל טקסט (app.js); זום הדפדפן חסום כדי שהמסך לא יזוז הצידה */
 html{touch-action:pan-x pan-y}
 .zoom-badge{position:fixed;left:50%;top:40%;z-index:9;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .15s;
