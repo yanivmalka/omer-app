@@ -9,11 +9,16 @@ html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);p
 .tabs-sticky .tabs{margin:14px 0 12px}
 .tabs-sticky.stuck{top:var(--mini-h)}
 .tabs-sticky.stuck .tabs{margin:6px 0 8px;box-shadow:0 4px 12px rgba(10,14,35,.10)}
-/* דפדוף בין ימים: היום הבא נכנס משמאל (RTL), הקודם מימין */
-@keyframes swNext{from{opacity:.35;transform:translateX(-28px)}to{opacity:1;transform:none}}
-@keyframes swPrev{from{opacity:.35;transform:translateX(28px)}to{opacity:1;transform:none}}
-.swipe-next{animation:swNext .26s ease-out}
-.swipe-prev{animation:swPrev .26s ease-out}
-@media (prefers-reduced-motion:reduce){.swipe-next,.swipe-prev{animation:none}}
+/* דפדוף בין ימים (קרוסלה): רק כרטיס היום והנוסח זזים; הדף עצמו לא זז הצידה */
+html,body{overflow-x:clip}
+.hero,#panel{touch-action:pan-y;will-change:transform}
+.swipe-peek{position:fixed;top:50%;z-index:8;transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--ink);color:var(--bg);border:2px solid var(--gold);font-weight:700;font-size:1rem;padding:10px 16px;box-shadow:0 6px 18px rgba(10,14,35,.25);white-space:nowrap}
+.swipe-peek[data-side="left"]{left:0;border-radius:0 999px 999px 0}
+.swipe-peek[data-side="right"]{right:0;border-radius:999px 0 0 999px}
+/* סוף הנוסח: הנעה לפעולה */
+.endcta{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:22px 0 6px;padding:18px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.endcta p{margin:0;color:var(--muted)}
+.endcta .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;-webkit-text-size-adjust:100%}
 #app{min-height:100vh}

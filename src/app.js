@@ -162,19 +162,44 @@ function PreviewBanner(){if(!S.sim)return null;
   return h(Banner,{tone:'warn',title:'מצב בדיקה'},`התצוגה לפי ${new Date(S.sim).toLocaleString('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}. `,
     h(TextButton,{onClick:()=>{setSim('');toast('חזרה לתאריך האמיתי');}},'חזרה לתאריך האמיתי'));}
 
-/* ============ SWIPE BETWEEN DAYS ============ */
-// RTL: מחליקים ימינה (האצבע זזה שמאלה→ימינה) = היום הבא, כמו דפדוף בספר עברי; שמאלה = היום הקודם
-let swipeAnim='';
-function stepDay(d){const n=viewDay+d;if(n<1||n>49)return false;viewDay=n;swipeAnim=d>0?'swipe-next':'swipe-prev';render();setTimeout(()=>{swipeAnim='';},320);return true;}
+/* ============ SWIPE BETWEEN DAYS (carousel) ============ */
+// RTL: מחליקים ימינה = היום הבא (נכנס משמאל), שמאלה = הקודם — כמו דפדוף בספר עברי.
+// רק כרטיס היום והנוסח/המנורה זזים עם האצבע; שאר המסך נשאר במקום. "תווית" של היום הבא מציצה מהצד.
+const SW_MS=200;let swBusy=false;
+const swEls=()=>[document.querySelector('.hero'),tab!=='trk'?document.getElementById('panel'):null].filter(Boolean);
+function swSet(x,ms){swEls().forEach(el=>{el.style.transition=ms?`transform ${ms}ms ease, opacity ${ms}ms ease`:'none';
+  el.style.transform=x?`translateX(${x}px)`:'';el.style.opacity=x?String(Math.max(.25,1-Math.abs(x)/innerWidth)):'';});}
+function swPeek(dir,frac){let p=document.getElementById('swPeek');
+  if(!p){p=document.createElement('div');p.id='swPeek';p.className='swipe-peek';p.setAttribute('aria-hidden','true');document.body.appendChild(p);}
+  const n=viewDay+dir;if(!dir||n<1||n>49||frac<=0){p.style.opacity='0';return;}
+  p.textContent=`${dir>0?'הבא':'הקודם'} · יום ${gem(n)}`;
+  p.dataset.side=dir>0?'left':'right';p.style.opacity=String(Math.min(1,frac*1.6));}
+function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
+  if(!animate||swBusy){viewDay=n;render();return true;}
+  swBusy=true;const W=innerWidth;swSet(d>0?W*.6:-W*.6,SW_MS);
+  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());swSet(d>0?-W*.4:W*.4,0);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{swSet(0,SW_MS+60);setTimeout(()=>{swEls().forEach(el=>{el.style.transition='';});swBusy=false;},SW_MS+80);}));},SW_MS);
+  return true;}
 (function(){let s=null;
   document.addEventListener('touchstart',e=>{const t=e.touches[0];
-    if(e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('button,a,input,select,textarea,.autobar,.tabs'))
+    if(swBusy||e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
       {s=null;return;}
-    s={x:t.clientX,y:t.clientY,t:Date.now()};},{passive:true});
-  document.addEventListener('touchend',e=>{if(!s)return;const t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y,dt=Date.now()-s.t;s=null;
-    if(dt>700||Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;
-    if(String(getSelection&&getSelection())!=='')return;
-    if(!stepDay(dx>0?1:-1))toast(dx>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');},{passive:true});
+    s={x:t.clientX,y:t.clientY,t:Date.now(),lock:null,dx:0};},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!s)return;const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
+    if(s.lock===null){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;s.lock=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';}
+    if(s.lock!=='x')return;
+    e.preventDefault(); // לא לגלול את הדף בזמן דפדוף אופקי
+    const dir=dx>0?1:-1,edge=(viewDay+dir<1||viewDay+dir>49);
+    s.dx=edge?dx*.25:dx;swSet(s.dx,0);swPeek(edge?0:dir,Math.abs(dx)/120);},{passive:false});
+  const end=e=>{if(!s)return;const st=s;s=null;swPeek(0,0);if(st.lock!=='x')return;
+    const v=Math.abs(st.dx)/Math.max(1,Date.now()-st.t),dir=st.dx>0?1:-1;
+    if(Math.abs(st.dx)>70||(v>.5&&Math.abs(st.dx)>30)){
+      if(viewDay+dir<1||viewDay+dir>49){swSet(0,SW_MS);toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');return;}
+      stepDay(dir,true);
+    }else swSet(0,SW_MS);};
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
+  // לחיצה שנגמרה בדפדוף לא תפעיל כפתור
+  document.addEventListener('click',e=>{if(swBusy&&e.target.closest('.hero,#panel')){e.stopPropagation();e.preventDefault();}},true);
 })();
 
 /* ============ HERO ============ */
@@ -215,7 +240,7 @@ function Hero(){
       h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',variant:'ghost',onClick:jumpToStart},'קפוץ לתחילת הספירה (לבדיקה)'))));
   }
   return h(DayHero,{day:vd,nusach:S.nusach,nikud:S.nikud,when,
-    onPrev:()=>stepDay(-1),onNext:()=>stepDay(1),
+    onPrev:()=>stepDay(-1,true),onNext:()=>stepDay(1,true),
     actions:h(Fragment,null,acts),yesterday:isCurrent&&!!active?true:null},banners);
 }
 
@@ -246,9 +271,23 @@ function SiddurTab(){
       h(PrayerSection,{key:'ribono',title:'רבונו של עולם'},tx(RIBONO_A),h(Highlight,null,tx(k.sef)),tx(RIBONO_B))];
     kids.push(h(CollapsibleGroup,{key:'after',title:'אחרי הספירה',open:S.openAfter!==false,onToggle:v=>{S.openAfter=v;saveS();}},inner));
   }
-  if((n===ST.target||n===ST.inProg)&&T()[n]!=='y')
-    kids.push(h('div',{key:'fin',className:'finish'},h(Button,{onClick:()=>{T()[viewDay]='y';saveT();render();toast('נרשם כהושלם');}},'סיימתי — סמן כהושלם')));
+  kids.push(h(EndCTA,{key:'end',n}));
   return h(Siddur,null,kids);
+}
+
+// סוף הנוסח: סימון היום, מעבר למעקב, ותזכורת להזכיר את בעל ההקדשה (כשיש מאגר הקדשות)
+function EndCTA({n}){
+  const live=n===ST.target||n===ST.inProg,done=T()[n]==='y',d=DB&&DEDS.length?curDed():null;
+  const toTracker=()=>goTab('trk');
+  return h('div',{className:'endcta'},
+    live&&!done?h(Fragment,null,h('p',null,'סיימת את הספירה?'),
+      h(Button,{onClick:()=>{T()[n]='y';saveT();render();toast('נרשם כהושלם');}},'סיימתי — סמן כהושלם')):
+    live&&done?h('p',null,'✓ הספירה של היום נרשמה'):h('p',null,`עיון ביום ${gem(n)}`),
+    d?h('p',null,'הזכר בתפילתך: ',h('b',null,`${d.purpose||''} ${d.name||''}`.trim()),' ',
+      h(TextButton,{onClick:()=>{const el=document.querySelector('.dedic');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}},'לכרטיס')):null,
+    h('div',{className:'row'},
+      h(Button,{variant:live&&!done?'ghost':'primary',onClick:toTracker},'למעקב שלי'),
+      !live&&(ST.target||ST.inProg)?h(Button,{variant:'ghost',onClick:()=>{viewDay=ST.target||ST.inProg;render();window.scrollTo({top:0,behavior:'smooth'});}},'ליום הנוכחי'):null));
 }
 
 function MenorahTab(){
@@ -461,7 +500,13 @@ function toMenorah(){sidY=scrollY;sidReturn=sidY;tab='men';if(autoOn||autoMode){
 /* ============ APP ============ */
 function toggleTheme(){const dark=S.theme==='dark'||(S.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);S.theme=dark?'light':'dark';saveS();render();}
 // הסרגל המקוצר מופיע כשכרטיס היום כבר מעל המסך
-function checkMini(){const hero=document.querySelector('.hero');if(!hero)return;const show=hero.getBoundingClientRect().bottom<0;if(show!==UI.mini){UI.mini=show;rerender();}}
+// מופיע ברגע שהכותרת העליונה (עם א−/א+) יוצאת מהמסך. בזמן שימוש בכפתורי הגופן שבו הוא ננעל פתוח,
+// אחרת שינוי הגופן מזיז את הדף, הסרגל נעלם והלחיצה הבאה נופלת על מה שמתחתיו.
+let miniLock=0;
+function checkMini(){const top=document.querySelector('.top');if(!top)return;let show=top.getBoundingClientRect().bottom<0;
+  if(!show&&UI.mini&&Date.now()<miniLock){setTimeout(checkMini,miniLock-Date.now()+30);return;}
+  if(show!==UI.mini){UI.mini=show;rerender();}}
+function miniFs(v){miniLock=Date.now()+2500;setFs(v);}
 function openSettings(){UI.settings=true;rerender();}
 
 function App(){
@@ -471,7 +516,6 @@ function App(){
     if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
   });
   useLayoutEffect(()=>{ // אנימציית דפדוף בין ימים + גובה הסרגל המקוצר (לכרטיסיות הצמודות)
-    const hero=document.querySelector('.hero');if(hero){hero.classList.remove('swipe-next','swipe-prev');if(swipeAnim){void hero.offsetWidth;hero.classList.add(swipeAnim);}}
     const m=document.querySelector('.mini');if(m)document.documentElement.style.setProperty('--mini-h',m.offsetHeight+'px');
   });
   useEffect(()=>{checkMini();}); // גם אחרי רינדור (מעבר כרטיסייה, שחזור גלילה), לא רק באירוע גלילה
@@ -495,7 +539,7 @@ function App(){
   if(S.sim)status.push({value:'מצב תצוגה מקדימה'});
 
   return h(OmerRoot,{theme:S.theme,fontScale:S.fs},
-    h(MiniBar,{day:viewDay,nusach:S.nusach,visible:UI.mini,fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings,
+    h(MiniBar,{day:viewDay,nusach:S.nusach,visible:UI.mini,fontScale:S.fs,onFontScale:miniFs,onToggleTheme:toggleTheme,onSettings:openSettings,
       onCountClick:()=>window.scrollTo({top:0,behavior:'smooth'})}),
     h('div',{className:'wrap'},
       h(AppHeader,{hebDate:(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t),fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings}),
@@ -506,7 +550,7 @@ function App(){
       h(Dedic),
       h(QuoteOfDay),
       h('div',{className:'tabs-sticky'+(UI.mini?' stuck':'')},h(Tabs,{items:[{id:'sid',label:'סדר הספירה'},{id:'men',label:'מנורה'},{id:'trk',label:'המעקב שלי'}],value:tab,onChange:goTab})),
-      h(Panel,{id:'panel',className:swipeAnim||undefined},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab))),
+      h(Panel,{id:'panel'},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab))),
     tab==='sid'?h(AutoScrollBar,{playing:autoOn,speed:S.speed,onToggle:()=>autoOn?stopAuto():startAuto(),onSpeed:setSpeed}):null,
     h(SettingsDialog),h(AskDialog),h(ConfirmDialog),
     h(Toast,{message:UI.toast.msg,visible:UI.toast.show}));
