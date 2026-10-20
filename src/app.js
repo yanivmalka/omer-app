@@ -201,9 +201,21 @@ function shadowRender(n){ // מרנדר את היום n מחוץ למסך ומח
 }
 function setFade(els,op,ms){els.forEach((el,i)=>{if(!el||!el.style)return;
   el.style.transition=ms?`opacity ${ms}ms ease ${Math.min(i*STAGGER,STAGGER_MAX)}ms`:'none';el.style.opacity=String(op);});}
+// שמירת המקום בדפדוף: עוגן = האלמנט הראשון שנראה במסך מתחת לסרגלים; אחרי הרינדור מחזירים אותו לאותו גובה
+function anchorCands(){return [...document.querySelectorAll('.hero, #panel p, #panel h2, #panel h3, #panel li, #panel .countline, #panel button, #panel [class]')].filter(e=>!(e instanceof SVGElement));}
+function scrollAnchor(){if(scrollY<5)return null;const top=stickyOffset(),all=anchorCands();
+  for(let i=0;i<all.length;i++){const e=all[i],r=e.getBoundingClientRect();
+    if(r.height>8&&r.height<innerHeight/2&&r.top>=top-1&&r.top<innerHeight)return {i,tag:e.tagName,cls:e.className,top:r.top,y:scrollY};}
+  return {i:-1,top:0,y:scrollY};}
+let userScrollEpoch=0;['touchstart','wheel','keydown'].forEach(ev=>addEventListener(ev,()=>userScrollEpoch++,{passive:true}));
+function restoreAnchor(a){if(!a)return;const ep=userScrollEpoch;const fix=()=>{if(userScrollEpoch!==ep)return;const e=anchorCands()[a.i];
+  if(e&&e.tagName===a.tag&&e.className===a.cls){const d=e.getBoundingClientRect().top-a.top;if(Math.abs(d)>.5)window.scrollTo({top:scrollY+d,behavior:'instant'});}
+  else if(Math.abs(scrollY-a.y)>1)window.scrollTo({top:a.y,behavior:'instant'});};
+  // גם מאוחר יותר (WebView באנדרואיד עלול לאפס גלילה אחרי הפריסה), כל עוד המשתמש לא נגע במסך בינתיים
+  fix();requestAnimationFrame(()=>{fix();requestAnimationFrame(fix);});[120,300,600].forEach(t=>setTimeout(fix,t));}
 function stepDay(d,animate){return changeDay(viewDay+d,animate);}
 function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
-  if(!animate||swBusy||matchMedia('(prefers-reduced-motion: reduce)').matches){viewDay=n;render();return true;}
+  if(!animate||swBusy||matchMedia('(prefers-reduced-motion: reduce)').matches){const a=scrollAnchor();viewDay=n;ReactDOM.flushSync(()=>render());restoreAnchor(a);return true;}
   swBusy=true;
   // P = {oh,op,nh,np}: נתיבים בכרטיס/בפאנל — ישנים (לדעיכה החוצה) וחדשים (לכניסה)
   let P={oh:[],op:[],nh:[],np:[]};
@@ -217,7 +229,7 @@ function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
   const outMs=FADE_OUT+Math.min(old.length*STAGGER,STAGGER_MAX);
   setTimeout(()=>{
     old.forEach(el=>{el.style.transition='';el.style.opacity='';});
-    viewDay=n;ReactDOM.flushSync(()=>render());
+    const a=scrollAnchor();viewDay=n;ReactDOM.flushSync(()=>render());restoreAnchor(a);
     const neu=resolve(P.nh,P.np);setFade(neu,DIP,0);void document.body.offsetHeight;setFade(neu,1,FADE_IN);
     setTimeout(()=>{neu.forEach(el=>{if(el.style){el.style.transition='';el.style.opacity='';}});swBusy=false;},FADE_IN+STAGGER_MAX+40);
   },outMs);
@@ -237,11 +249,16 @@ function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
 
 /* ============ STABLE SIZES ============ */
 // גובה קבוע לאזורים שהטקסט שלהם מתחלף בין ימים (ספירה, כוונות, מקוצר, שורת הספירה בנוסח):
-// מודדים את הגבוה ביותר מבין 49 הימים ברוחב ובגודל הגופן הנוכחיים, וקובעים min-height — כך שום דבר לא קופץ בדפדוף.
-let stableKey='';
+// מודדים לכל יום ברוחב ובגודל הגופן הנוכחיים, ולוקחים את המקסימום בתוך כל שבוע (קבוצה של 7 ימים) — min-height.
+// בתוך שבוע שום דבר לא קופץ; במעבר שבוע הגובה יכול להשתנות (כדי שלא יהיה רווח ריק גדול בימים הקצרים).
+let stableKey='',stableGroups=null,stableApplied='';
+const sizeGroup=n=>Math.ceil(n/7);
+function applyStable(n){if(!stableGroups||!n)return;const g=stableGroups[sizeGroup(n)];if(!g)return;
+  const k=g.count+'|'+g.of+'|'+g.kav+'|'+g.cl;if(k===stableApplied)return;stableApplied=k;const r=document.documentElement.style;
+  r.setProperty('--mh-count',g.count+'px');r.setProperty('--mh-of',g.of+'px');r.setProperty('--mh-kav',g.kav+'px');r.setProperty('--mh-countline',g.cl+'px');}
 function stabilizeSizes(force){
   const hero=document.querySelector('.hero');if(!hero)return;
-  const key=[hero.clientWidth,S.fs,S.nusach,S.nikud,tab].join('|');if(key===stableKey&&!force)return;stableKey=key;
+  const key=[hero.clientWidth,S.fs,S.nusach,S.nikud,tab].join('|');if(key===stableKey&&!force){applyStable(viewDay);return;}stableKey=key;stableApplied='';
   const root=document.documentElement,box=document.createElement('div');
   box.style.cssText='position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;contain:layout';
   const ch=hero.cloneNode(true);ch.style.minHeight='';ch.querySelectorAll('[style]').forEach(e=>e.removeAttribute('style'));
@@ -267,8 +284,8 @@ function stabilizeSizes(force){
   // אם בעמודה של רבע המילה הייתה צריכה לקטון מתחת ל־80% (גופן גדול / מסך צר): ספירה בשורה מלאה, אנא בכח ולמנצח חצי־חצי
   if(Math.min(fits[1]||1,fits[2]||1)<.8)root.classList.add('kav-stack');
   else{root.style.setProperty('--kav-fit-2',String(fits[1]||1));root.style.setProperty('--kav-fit-3',String(fits[2]||1));}
-  const mx={count:0,of:0,kav:0,cl:0};
-  for(let n=1;n<=49;n++){const k=OmerDS.kav(n);
+  const groups={};let mx;
+  for(let n=1;n<=49;n++){const k=OmerDS.kav(n);mx=groups[sizeGroup(n)]||(groups[sizeGroup(n)]={count:0,of:0,kav:0,cl:0});
     if(q('.count')){q('.count').textContent=tx(countText(n,S.nusach));mx.count=Math.max(mx.count,q('.count').offsetHeight);}
     if(q('.daynum .n'))q('.daynum .n').textContent=gem(n);
     if(q('.daynum .of')){q('.daynum .of').textContent=shortCount(n,S.nusach);mx.of=Math.max(mx.of,q('.daynum .of').offsetHeight);}
@@ -277,8 +294,7 @@ function stabilizeSizes(force){
     if(cc){cc.textContent=tx(countText(n,S.nusach));mx.cl=Math.max(mx.cl,cc.offsetHeight);}
   }
   box.remove();if(cbox)cbox.remove();
-  root.style.setProperty('--mh-count',mx.count+'px');root.style.setProperty('--mh-of',mx.of+'px');
-  root.style.setProperty('--mh-kav',mx.kav+'px');root.style.setProperty('--mh-countline',mx.cl+'px');
+  stableGroups=groups;applyStable(viewDay);
 }
 window.addEventListener('resize',()=>{clearTimeout(window.__stT);window.__stT=setTimeout(()=>stabilizeSizes(),150);});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>stabilizeSizes(true));
