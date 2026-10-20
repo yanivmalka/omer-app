@@ -247,10 +247,26 @@ function stabilizeSizes(force){
   const ch=hero.cloneNode(true);ch.style.minHeight='';ch.querySelectorAll('[style]').forEach(e=>e.removeAttribute('style'));
   box.appendChild(ch);hero.parentNode.appendChild(box);ch.style.width=hero.offsetWidth+'px';
   const cl=document.querySelector('#panel .countline');let cc=null;
-  if(cl){cc=cl.cloneNode(true);cc.removeAttribute('style');const sw=document.createElement('div');sw.className=(cl.closest('.sid')||{}).className||'sid';
-    sw.style.width=cl.offsetWidth+'px';sw.appendChild(cc);box.appendChild(sw);} // הסגנון של countline תלוי ב־.sid
+  let cbox=null;
+  if(cl){cc=cl.cloneNode(true);cc.removeAttribute('style');cc.style.width=cl.offsetWidth+'px';
+    // מודדים בתוך אותו הורה בנוסח, כדי שכל כללי ה־CSS (#panel, .sid) יחולו גם על העותק
+    cbox=document.createElement('div');cbox.style.cssText='position:absolute;left:0;top:0;visibility:hidden;pointer-events:none';
+    cbox.appendChild(cc);cl.parentNode.appendChild(cbox);}
   ['--mh-count','--mh-of','--mh-kav','--mh-countline'].forEach(v=>root.style.setProperty(v,'0px'));
   const q=s=>ch.querySelector(s),kav=[...ch.querySelectorAll('.kav > div')],kavS=kav.map(d=>d.querySelector('span'));
+  // מילים לא נשברות: בעמודות הצרות (אנא בכח, למנצח) מקטינים את הגופן כך שהמילה הארוכה מבין 49 הימים תיכנס בשורה
+  root.style.setProperty('--kav-fit-2','1');root.style.setProperty('--kav-fit-3','1');root.classList.remove('kav-stack');
+  const fits={};
+  [[1,n=>tx(OmerDS.kav(n).ana)],[2,n=>tx(OmerDS.kav(n).ps.w)]].forEach(([i,get])=>{
+    const cell=kav[i],sp=kavS[i];if(!cell||!sp)return;
+    const cs=getComputedStyle(cell),avail=cell.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+    const probe=sp.cloneNode(false);probe.style.cssText='display:inline-block;white-space:nowrap;position:absolute;visibility:hidden';cell.appendChild(probe);
+    let w=0;for(let n=1;n<=49;n++)get(n).split(/\s+/).forEach(word=>{probe.textContent=word;w=Math.max(w,probe.getBoundingClientRect().width);});
+    probe.remove();fits[i]=w>avail?Math.floor(avail/w*100)/100:1;
+  });
+  // אם בעמודה של רבע המילה הייתה צריכה לקטון מתחת ל־80% (גופן גדול / מסך צר): ספירה בשורה מלאה, אנא בכח ולמנצח חצי־חצי
+  if(Math.min(fits[1]||1,fits[2]||1)<.8)root.classList.add('kav-stack');
+  else{root.style.setProperty('--kav-fit-2',String(fits[1]||1));root.style.setProperty('--kav-fit-3',String(fits[2]||1));}
   const mx={count:0,of:0,kav:0,cl:0};
   for(let n=1;n<=49;n++){const k=OmerDS.kav(n);
     if(q('.count')){q('.count').textContent=tx(countText(n,S.nusach));mx.count=Math.max(mx.count,q('.count').offsetHeight);}
@@ -260,7 +276,7 @@ function stabilizeSizes(force){
       kav.forEach(d=>{mx.kav=Math.max(mx.kav,d.offsetHeight);});}
     if(cc){cc.textContent=tx(countText(n,S.nusach));mx.cl=Math.max(mx.cl,cc.offsetHeight);}
   }
-  box.remove();
+  box.remove();if(cbox)cbox.remove();
   root.style.setProperty('--mh-count',mx.count+'px');root.style.setProperty('--mh-of',mx.of+'px');
   root.style.setProperty('--mh-kav',mx.kav+'px');root.style.setProperty('--mh-countline',mx.cl+'px');
 }
@@ -339,7 +355,7 @@ function SiddurTab(){
   }
   kids.push(h(PrayerSection,{key:'bracha',title:'ברכה',variant:'blessing',note:noBracha()?'הושמטה ברכה? — לפי הרשום ממשיכים בלי ברכה.':null},tx(BRACHA)));
   kids.push(h(PrayerSection,{key:'count',title:'הספירה',variant:'count',note:'כוונה: '+tx(k.sef),
-    after:h('p',{className:'blessing',style:{marginTop:10}},tx(HARACHAMAN))},tx(countText(n,S.nusach))));
+    after:h('p',{className:'blessing',style:{marginTop:10}},tx(HARACHAMAN))},h('span',{className:'cl-text'},tx(countText(n,S.nusach))))); // רק הטקסט דועך במעבר יום, לא המסגרת
   if(S.after){
     // טקסט רציף נשמר כצומת אחד, והמילה של היום בלבד נעטפת (כך הדפדפן מעצב את הניקוד כמו בעבר)
     const ps=[h('b',{key:'t'},tx(PS_TITLE))];let idx=0,buf=' ';

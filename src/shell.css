@@ -17,6 +17,18 @@ html,body{overflow-x:clip}
 .hero .daynum .of{min-height:var(--mh-of,auto)}
 .hero .kav > div{min-height:var(--mh-kav,auto)}
 #panel .countline{min-height:var(--mh-countline,auto)}
+/* כוונות היום: ספירה חצי, אנא בכח ולמנצח רבע כל אחת; מילים לא נשברות באמצע */
+.hero .kav{grid-template-columns:2fr 1fr 1fr}
+.hero .kav span{overflow-wrap:normal;word-break:normal;hyphens:none}
+.hero .kav>div:not(:first-child){padding:8px 7px}
+.hero .kav>div:not(:first-child) small{font-size:.8rem;white-space:nowrap}
+.kav-stack .hero .kav{grid-template-columns:1fr 1fr}
+.kav-stack .hero .kav>div:first-child{grid-column:1/-1}
+.hero .kav>div:nth-child(2) span{font-size:calc(1.15rem * var(--fs) / var(--ui) * var(--kav-fit-2,1))}
+.hero .kav>div:nth-child(3) span{font-size:calc(1.15rem * var(--fs) / var(--ui) * var(--kav-fit-3,1))}
+.hero,#panel,.mini{overflow-wrap:normal;word-break:normal;hyphens:none}
+/* פחות ריווח בשורת הספירה בנוסח */
+#panel .countline{line-height:1.6;padding:8px 12px}
 /* צביטה = גודל טקסט (app.js); זום הדפדפן חסום כדי שהמסך לא יזוז הצידה */
 html{touch-action:pan-x pan-y}
 .zoom-badge{position:fixed;left:50%;top:40%;z-index:9;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .15s;
