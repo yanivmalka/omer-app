@@ -9,21 +9,13 @@ html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);p
 .tabs-sticky .tabs{margin:14px 0 12px}
 .tabs-sticky.stuck{top:var(--mini-h)}
 .tabs-sticky.stuck .tabs{margin:6px 0 8px;box-shadow:0 4px 12px rgba(10,14,35,.10)}
-/* דפדוף בין ימים: רק כרטיס היום זז; הנוסח מתחלף בעמעום; הדף עצמו לא זז הצידה */
+/* מעבר יום: כרטיס אחד; רק טקסט שמשתנה דועך החוצה/פנימה (app.js). הדף לא זז הצידה */
 html,body{overflow-x:clip}
 .hero,#panel{touch-action:pan-y}
 /* צביטה = גודל טקסט (app.js); זום הדפדפן חסום כדי שהמסך לא יזוז הצידה */
 html{touch-action:pan-x pan-y}
 .zoom-badge{position:fixed;left:50%;top:40%;z-index:9;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .15s;
   background:var(--ink);color:var(--bg);border:2px solid var(--gold);border-radius:999px;padding:10px 18px;font-weight:700;white-space:nowrap}
-.hero{will-change:transform}
-.hero-deck{position:relative;touch-action:pan-y}
-.hero-track{position:relative;will-change:transform}
-.hero-cur,.hero-ghost{transform-origin:50% 60%}
-.hero-ghost{position:absolute;top:0;width:100%;pointer-events:none;transform:scale(.94)}
-.hero-ghost.next{right:calc(100% + 14px)} /* RTL: מחר מחכה משמאל */
-.hero-ghost.prev{left:calc(100% + 14px)}  /* אתמול מימין */
-.hero-ghost .hero,.hero-deck.dragging .hero-cur .hero{box-shadow:0 12px 28px rgba(10,14,35,.18)}
 /* סוף הנוסח: הנעה לפעולה */
 .endcta{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:22px 0 6px;padding:18px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
 .endcta p{margin:0;color:var(--muted)}

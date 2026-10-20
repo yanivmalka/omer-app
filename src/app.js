@@ -162,59 +162,76 @@ function PreviewBanner(){if(!S.sim)return null;
   return h(Banner,{tone:'warn',title:'מצב בדיקה'},`התצוגה לפי ${new Date(S.sim).toLocaleString('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}. `,
     h(TextButton,{onClick:()=>{setSim('');toast('חזרה לתאריך האמיתי');}},'חזרה לתאריך האמיתי'));}
 
-/* ============ SWIPE BETWEEN DAYS (paper-card deck) ============ */
-// RTL: מחליקים ימינה = היום הבא (הכרטיס שלו מחכה משמאל), שמאלה = הקודם (מימין) — כמו דפדוף בספר עברי.
-// כרטיסי אתמול/מחר מרונדרים תמיד ליד הכרטיס הנוכחי (מחוץ למסך); בזמן הגרירה רק המסילה זזה (transform, בלי רינדור),
-// וכשהכרטיס החדש נעצר במרכז מחליפים את היום ברקע — בלי קפיצה. הנוסח/המנורה מתחלפים במקום בעמעום.
-const SW_MS=240,SW_GAP=14;let swBusy=false;
-const deck=()=>{const d=document.querySelector('.hero-deck');return d?{track:d.querySelector('.hero-track'),cur:d.querySelector('.hero-cur'),
-  next:d.querySelector('.hero-ghost.next'),prev:d.querySelector('.hero-ghost.prev'),W:d.offsetWidth+SW_GAP}:null;};
-function deckPose(D,dx,ms){if(!D)return;const tr=ms?`transform ${ms}ms cubic-bezier(.2,.7,.3,1)`:'none';
-  const p=Math.min(1,Math.abs(dx)/D.W),inc=dx>0?D.next:D.prev;
-  D.track.style.transition=tr;D.track.style.transform=dx?`translateX(${dx}px)`:'';
-  D.cur.style.transition=tr;D.cur.style.transform=dx?`rotate(${(dx/D.W)*2.5}deg) scale(${1-.06*p})`:'';
-  [D.next,D.prev].forEach(g=>{if(!g)return;g.style.transition=tr;g.style.transform=g===inc&&dx?`rotate(${(1-p)*(dx>0?-2.5:2.5)}deg) scale(${.94+.06*p})`:'';});
-  document.querySelector('.hero-deck').classList.toggle('dragging',!!dx);}
-function swFadePanel(){const p=document.getElementById('panel');if(!p)return;p.style.transition='none';p.style.opacity='.35';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{p.style.transition='opacity 220ms ease';p.style.opacity='';setTimeout(()=>{p.style.transition='';},260);}));}
+/* ============ DAY CHANGE: FADE ONLY WHAT CHANGES ============ */
+// מעבר יום (החלקה / חיצים): כרטיס אחד שלא זז. היום החדש מרונדר קודם ב"צל" (React root מנותק),
+// משווים אותו לתצוגה הנוכחית, ורק אלמנטים שהתוכן שלהם משתנה דועכים החוצה ואז נכנסים מחדש — בסדר מלמעלה למטה.
+// טקסט קבוע (ברכה, לשם יחוד, תוויות, המזמור עצמו) לא מושפע; במזמור רק ההדגשה עוברת.
+const FADE_OUT=140,FADE_IN=220,STAGGER=14,STAGGER_MAX=160;let swBusy=false;
+function ownText(el){let s='';for(const c of el.childNodes)if(c.nodeType===3)s+=c.nodeValue;return s;}
+function sigOf(el){return el.tagName+'|'+(el.getAttribute('class')||'')+'|'+(el.children.length?ownText(el):el.textContent);}
+// משווה עץ ישן מול עץ חדש. ילדים מותאמים לפי (תגית+class) והמופע ה־k שלהם, כך שכפתור/באנר שנוסף או הוסר
+// לא גורם לכל הכרטיס להיחשב "משתנה". oldOut = מה שדועך החוצה, newOut = מה שנכנס.
+function diffPaths(a,b,pa,pb,oldOut,newOut){
+  // מזמור: רק ההדגשה זזה בתוך פסקה שהטקסט שלה זהה — לא מדעיכים את כל הפסקה, רק את ההדגשה
+  const same=sigOf(a)===sigOf(b)||(a.tagName===b.tagName&&a.getAttribute('class')===b.getAttribute('class')&&a.children.length&&a.textContent===b.textContent);
+  if(a.tagName!==b.tagName||!same){oldOut.push(pa);newOut.push(pb);return;}
+  diffChildren(a,b,pa,pb,oldOut,newOut);
+}
+function diffChildren(a,b,pa,pb,oldOut,newOut){
+  const key=e=>e.tagName+'.'+(e.getAttribute('class')||'');
+  const seen={},bMap={};
+  Array.from(b.children).forEach((e,j)=>{const k=key(e),c=bMap[k]=bMap[k]||[];c.push(j);});
+  const used=new Set();
+  Array.from(a.children).forEach((e,i)=>{const k=key(e),n=seen[k]=(seen[k]||0);seen[k]++;
+    const j=bMap[k]&&bMap[k][n];
+    if(j===undefined){oldOut.push(pa.concat(i));return;}
+    used.add(j);diffPaths(e,b.children[j],pa.concat(i),pb.concat(j),oldOut,newOut);});
+  Array.from(b.children).forEach((e,j)=>{if(!used.has(j))newOut.push(pb.concat(j));});
+}
+const atPath=(root,path)=>path.reduce((el,i)=>el&&el.children[i],root);
+function dayRoots(){return [document.querySelector('.hero'),document.getElementById('panel')];}
+function shadowRender(n){ // מרנדר את היום n מחוץ למסך ומחזיר [hero, panel] להשוואה
+  const box=document.createElement('div'),root=ReactDOM.createRoot(box),keep=viewDay;
+  box.style.cssText='position:absolute;left:-99999px;top:0;width:'+(document.querySelector('.wrap')||document.body).clientWidth+'px;visibility:hidden';
+  document.body.appendChild(box);viewDay=n;
+  try{ReactDOM.flushSync(()=>root.render(h('div',null,h('div',{className:'sh-hero'},h(Hero)),h('div',{className:'sh-panel'},tab==='sid'?h(SiddurTab):tab==='men'?h(MenorahTab):h(TrackerTab)))));}
+  finally{viewDay=keep;}
+  return {hero:box.querySelector('.sh-hero').firstElementChild,panel:box.querySelector('.sh-panel'),done:()=>{root.unmount();box.remove();}};
+}
+function setFade(els,op,ms){els.forEach((el,i)=>{if(!el||!el.style)return;
+  el.style.transition=ms?`opacity ${ms}ms ease ${Math.min(i*STAGGER,STAGGER_MAX)}ms`:'none';el.style.opacity=String(op);});}
 function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
-  const D=animate&&!swBusy?deck():null;
-  if(!D){viewDay=n;render();return true;}
-  swBusy=true;deckPose(D,d>0?D.W:-D.W,SW_MS);
-  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());deckPose(deck(),0,0);swFadePanel();swBusy=false;},SW_MS+20);
+  if(!animate||swBusy||matchMedia('(prefers-reduced-motion: reduce)').matches){viewDay=n;render();return true;}
+  swBusy=true;
+  // P = {oh,op,nh,np}: נתיבים בכרטיס/בפאנל — ישנים (לדעיכה החוצה) וחדשים (לכניסה)
+  let P={oh:[],op:[],nh:[],np:[]};
+  try{const [oh,op]=dayRoots(),sh=shadowRender(n);
+    if(oh&&sh.hero)diffPaths(oh,sh.hero,[],[],P.oh,P.nh);
+    if(op&&sh.panel)diffChildren(op,sh.panel,[],[],P.op,P.np); // שורש הפאנל עצמו לא משתנה
+    sh.done();
+  }catch(e){console.error(e);P={oh:[[]],op:[],nh:[[]],np:[]};}
+  const resolve=(hp,pp)=>{const [hr,pr]=dayRoots();return hp.map(p=>atPath(hr,p)).concat(pp.map(p=>atPath(pr,p))).filter(Boolean);};
+  const old=resolve(P.oh,P.op);setFade(old,0,FADE_OUT);
+  const outMs=FADE_OUT+Math.min(old.length*STAGGER,STAGGER_MAX);
+  setTimeout(()=>{
+    old.forEach(el=>{el.style.transition='';el.style.opacity='';});
+    viewDay=n;ReactDOM.flushSync(()=>render());
+    const neu=resolve(P.nh,P.np);setFade(neu,0,0);void document.body.offsetHeight;setFade(neu,1,FADE_IN);
+    setTimeout(()=>{neu.forEach(el=>{if(el.style){el.style.transition='';el.style.opacity='';}});swBusy=false;},FADE_IN+STAGGER_MAX+40);
+  },outMs);
   return true;}
 (function(){let s=null;
   document.addEventListener('touchstart',e=>{const t=e.touches[0];
-    if(swBusy||e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero-deck,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
+    if(e.touches.length!==1||tab==='trk'||document.querySelector('dialog[open]')||!e.target.closest('.hero,#panel')||e.target.closest('input,select,textarea,.autobar,.tabs'))
       {s=null;return;}
-    s={x:t.clientX,y:t.clientY,t:Date.now(),lock:null,dx:0,D:null};},{passive:true});
-  document.addEventListener('touchmove',e=>{if(!s)return;
-    if(e.touches.length>1){if(s.D)deckPose(s.D,0,SW_MS);s=null;return;}
-    const t=e.touches[0],dx=t.clientX-s.x,dy=t.clientY-s.y;
-    if(s.lock===null){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;s.lock=Math.abs(dx)>Math.abs(dy)?'x':'y';if(s.lock==='x')s.D=deck();}
-    if(s.lock!=='x'||!s.D)return;
-    if(e.cancelable)e.preventDefault(); // לא לגלול את הדף בזמן דפדוף אופקי
-    const edge=(viewDay+(dx>0?1:-1)<1||viewDay+(dx>0?1:-1)>49);
-    s.dx=edge?dx*.25:dx;deckPose(s.D,s.dx,0);},{passive:false});
-  const end=()=>{if(!s)return;const st=s;s=null;if(st.lock!=='x'||!st.D)return;
-    const v=Math.abs(st.dx)/Math.max(1,Date.now()-st.t),dir=st.dx>0?1:-1;
-    if(Math.abs(st.dx)>st.D.W*.25||(v>.45&&Math.abs(st.dx)>30)){
-      if(viewDay+dir<1||viewDay+dir>49){deckPose(st.D,0,SW_MS);toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');return;}
-      const ms=Math.round(SW_MS*Math.max(.45,1-Math.abs(st.dx)/st.D.W));
-      swBusy=true;deckPose(st.D,dir*st.D.W,ms);
-      setTimeout(()=>{viewDay+=dir;ReactDOM.flushSync(()=>render());deckPose(deck(),0,0);swFadePanel();swBusy=false;},ms+10);
-    }else deckPose(st.D,0,SW_MS);};
-  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
-  // לחיצה שנגמרה בדפדוף לא תפעיל כפתור
-  document.addEventListener('click',e=>{if(swBusy&&e.target.closest('.hero-deck,#panel')){e.stopPropagation();e.preventDefault();}},true);
+    s={x:t.clientX,y:t.clientY,t:Date.now()};},{passive:true});
+  document.addEventListener('touchmove',e=>{if(s&&e.touches.length>1)s=null;},{passive:true});
+  document.addEventListener('touchend',e=>{if(!s)return;const t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y,dt=Date.now()-s.t;s=null;
+    if(dt>800||Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;
+    if(String(getSelection&&getSelection())!=='')return;
+    const dir=dx>0?1:-1; // RTL: ימינה = היום הבא, שמאלה = הקודם
+    if(!stepDay(dir,true))toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');},{passive:true});
 })();
-// כרטיס "נייר" של אתמול/מחר — רק לתצוגה בזמן הדפדוף (לא פעיל, לא ניתן למיקוד)
-const inertRef=el=>{if(el)el.setAttribute('inert','');};
-function GhostCard({n,side}){if(n<1||n>49)return null;
-  const when=n===ST.target?(ST.night?'הלילה סופרים':'הערב נספור'):n===ST.inProg?'היום — נספר אמש':'תצוגת יום';
-  return h('div',{className:'hero-ghost '+side,'aria-hidden':'true',ref:inertRef},h(DayHero,{day:n,nusach:S.nusach,nikud:S.nikud,when}));}
-function HeroDeck(){return h('div',{className:'hero-deck'},h('div',{className:'hero-track'},
-  h('div',{className:'hero-cur'},h(Hero)),h(GhostCard,{key:'next',n:viewDay+1,side:'next'}),h(GhostCard,{key:'prev',n:viewDay-1,side:'prev'})));}
 
 /* ============ PINCH ZOOM = TEXT SIZE ============ */
 // צביטה בשתי אצבעות משנה את גודל הטקסט של האפליקציה (0.8–1.4, בצעדים של 0.1) — הטקסט נשבר מחדש
@@ -588,7 +605,7 @@ function App(){
       h(StatusBar,{items:status}),
       h(UpdateBanner),
       h(PreviewBanner),
-      h(HeroDeck),
+      h(Hero),
       h(Dedic),
       h(QuoteOfDay),
       h('div',{className:'tabs-sticky'+(UI.mini?' stuck':'')},h(Tabs,{items:[{id:'sid',label:'סדר הספירה'},{id:'men',label:'מנורה'},{id:'trk',label:'המעקב שלי'}],value:tab,onChange:goTab})),
