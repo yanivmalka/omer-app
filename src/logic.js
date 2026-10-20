@@ -42,7 +42,7 @@ const LOCS=[
 
 /* ============ STORAGE ============ */
 const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const DEF={speed:2,nusach:'em',nikud:true,before:true,after:true,fs:1.2,loc:'jlm',custom:null,tzeit:'d8.5',remind:false,remindMore:true,remindAsked:false,offset:0,theme:'auto',sim:''};
+const DEF={speed:2,nusach:'em',nikud:true,before:true,after:true,fs:1.2,loc:'jlm',custom:null,tzeit:'d8.5',remind:false,remindMore:true,remindAsked:false,offset:0,theme:'auto',accent:'gold',sim:''};
 let S=Object.assign({},DEF,store.get('omer-settings',{}));
 // גודל ראשוני גדול יותר (קריאה בעמידה, מחוץ לבית): משתמשים קיימים שלא שינו מברירת המחדל הישנה (1) עוברים ל־1.2
 if(!S.fsV){if(+S.fs===1)S.fs=DEF.fs;S.fsV=2;}

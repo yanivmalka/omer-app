@@ -645,6 +645,8 @@ function SettingsDialog(){
     S.remind?h(Field,{label:'תזכורות חוזרות',hint:'אחרי שעה, מאוחר בערב, ואם שכחת — בבוקר ולפני השקיעה. נעצר כשמסמנים "ספרתי".',htmlFor:'sRemMore'},
       h(Switch,{id:'sRemMore',checked:S.remindMore!==false,onChange:e=>{S.remindMore=e.target.checked;saveS();render();}})):null,
     S.remind?h(Field,{label:'בדיקה'},h(Button,{variant:'ghost',size:'small',onClick:testReminder},'שלח התראת ניסיון')):null,
+    h(Field,{label:'סגנון הדגשה',hint:'זהב, או להבות אש מהבהבות',htmlFor:'sAccent'},h('select',{id:'sAccent',value:S.accent||'gold',onChange:set('accent')},
+      h('option',{value:'gold'},'זהב'),h('option',{value:'fire'},'להבות אש'))),
     h(Field,{label:'ערכת צבע',htmlFor:'sTheme'},h('select',{id:'sTheme',value:S.theme,onChange:set('theme')},
       h('option',{value:'auto'},'לפי המכשיר'),h('option',{value:'light'},'בהירה'),h('option',{value:'dark'},'כהה'))),
     h(Field,{label:'תצוגה לפי תאריך אחר',hint:'לבדיקה ותצוגה מקדימה',htmlFor:'sSim'},
@@ -737,6 +739,7 @@ function App(){
   rerender=sync=>{if(sync===true)ReactDOM.flushSync(()=>setV(v=>v+1));else setV(v=>v+1);};
   useLayoutEffect(()=>{
     if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);
+    document.documentElement.setAttribute('data-accent',S.accent==='fire'?'fire':'gold'); // סגנון הדגשה: זהב / להבות אש
   });
   useLayoutEffect(()=>{ // אנימציית דפדוף בין ימים + גובה הסרגל המקוצר (לכרטיסיות הצמודות)
     const m=document.querySelector('.mini');if(m)document.documentElement.style.setProperty('--mini-h',m.offsetHeight+'px');
