@@ -9,9 +9,10 @@ html{scroll-padding-top:calc(var(--mini-h) + 56px);padding-top:var(--safe-top);p
 .tabs-sticky .tabs{margin:14px 0 12px}
 .tabs-sticky.stuck{top:var(--mini-h)}
 .tabs-sticky.stuck .tabs{margin:6px 0 8px;box-shadow:0 4px 12px rgba(10,14,35,.10)}
-/* דפדוף בין ימים (קרוסלה): רק כרטיס היום והנוסח זזים; הדף עצמו לא זז הצידה */
+/* דפדוף בין ימים: רק כרטיס היום זז; הנוסח מתחלף בעמעום; הדף עצמו לא זז הצידה */
 html,body{overflow-x:clip}
-.hero,#panel{touch-action:pan-y;will-change:transform}
+.hero,#panel{touch-action:pan-y}
+.hero{will-change:transform}
 .swipe-peek{position:fixed;top:50%;z-index:8;transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity .12s;
   background:var(--ink);color:var(--bg);border:2px solid var(--gold);font-weight:700;font-size:1rem;padding:10px 16px;box-shadow:0 6px 18px rgba(10,14,35,.25);white-space:nowrap}
 .swipe-peek[data-side="left"]{left:0;border-radius:0 999px 999px 0}

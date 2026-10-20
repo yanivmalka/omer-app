@@ -164,9 +164,12 @@ function PreviewBanner(){if(!S.sim)return null;
 
 /* ============ SWIPE BETWEEN DAYS (carousel) ============ */
 // RTL: מחליקים ימינה = היום הבא (נכנס משמאל), שמאלה = הקודם — כמו דפדוף בספר עברי.
-// רק כרטיס היום והנוסח/המנורה זזים עם האצבע; שאר המסך נשאר במקום. "תווית" של היום הבא מציצה מהצד.
+// כרטיס היום זז עם האצבע; "תווית" של היום הבא מציצה מהצד.
 const SW_MS=200;let swBusy=false;
-const swEls=()=>[document.querySelector('.hero'),tab!=='trk'?document.getElementById('panel'):null].filter(Boolean);
+// רק כרטיס היום זז עם האצבע; הנוסח/המנורה מתחלפים במקום בעמעום קצר (קל יותר לעין)
+const swEls=()=>[document.querySelector('.hero')].filter(Boolean);
+function swFadePanel(){const p=document.getElementById('panel');if(!p)return;p.style.transition='none';p.style.opacity='.35';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{p.style.transition='opacity 220ms ease';p.style.opacity='';setTimeout(()=>{p.style.transition='';},260);}));}
 function swSet(x,ms){swEls().forEach(el=>{el.style.transition=ms?`transform ${ms}ms ease, opacity ${ms}ms ease`:'none';
   el.style.transform=x?`translateX(${x}px)`:'';el.style.opacity=x?String(Math.max(.25,1-Math.abs(x)/innerWidth)):'';});}
 function swPeek(dir,frac){let p=document.getElementById('swPeek');
@@ -177,7 +180,7 @@ function swPeek(dir,frac){let p=document.getElementById('swPeek');
 function stepDay(d,animate){const n=viewDay+d;if(n<1||n>49)return false;
   if(!animate||swBusy){viewDay=n;render();return true;}
   swBusy=true;const W=innerWidth;swSet(d>0?W*.6:-W*.6,SW_MS);
-  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());swSet(d>0?-W*.4:W*.4,0);
+  setTimeout(()=>{viewDay=n;ReactDOM.flushSync(()=>render());swFadePanel();swSet(d>0?-W*.4:W*.4,0);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{swSet(0,SW_MS+60);setTimeout(()=>{swEls().forEach(el=>{el.style.transition='';});swBusy=false;},SW_MS+80);}));},SW_MS);
   return true;}
 (function(){let s=null;
