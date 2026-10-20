@@ -413,6 +413,11 @@ function Hero(){
   if(isCurrent){
     const done=T()[vd]==='y';
     acts.push(h(Button,{key:'mark',variant:done?'done':'primary',onClick:()=>{if(done)delete T()[vd];else T()[vd]='y';saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');}},done?'✓ הושלם':'סמן כהושלם'));
+  }else if(vd<(ST.target||ST.inProg||0)){
+    // יום שעבר (גם במצב בדיקה): אפשר לסמן/לבטל, ולחזור להיום
+    const done=T()[vd]==='y';
+    acts.push(h(Button,{key:'mark',variant:done?'done':'primary',size:'small',onClick:()=>{if(done)delete T()[vd];else T()[vd]='y';saveT();render();toast(done?'הסימון בוטל':'נרשם כהושלם');}},done?'✓ הושלם':'סמן כהושלם'));
+    acts.push(h(Button,{key:'home',size:'small',variant:'ghost',onClick:()=>changeDay(homeDay(),true)},'חזרה להיום'));
   }else if(vd!==homeDay()){
     // חזרה ליום של היום (מחוץ לימי הספירה: ליום הראשון)
     const home=homeDay();
