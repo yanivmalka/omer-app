@@ -192,6 +192,13 @@ var OmerDS = (() => {
         return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { ...p, ...st, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M15 6l-6 6 6 6" }) });
       case "chevron-down":
         return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { ...p, ...st, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M6 9l6 6 6-6" }) });
+      case "share":
+        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { ...p, ...st, strokeWidth: 2, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "18", cy: "5", r: "2.6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "6", cy: "12", r: "2.6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "18", cy: "19", r: "2.6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4" })
+        ] });
       case "menorah":
         return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { ...p, ...st, strokeWidth: 2, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 4v16M6 20h12M5 5v3a7 7 0 0 0 14 0V5M8.5 5v3a3.5 3.5 0 0 0 7 0V5" }) });
       case "play":

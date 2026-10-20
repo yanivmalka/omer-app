@@ -42,3 +42,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font
 /* החלקה אופקית (מעבר יום) לא תגרום לניווט "אחורה" של הדפדפן / גלילה אופקית של המנורה */
 html,body{overscroll-behavior-x:none}
 #panel .men-scroll{overflow-x:hidden;overscroll-behavior-x:none}
+/* שיתוף: אייקון קטן בקצה השמאלי של שורת הפעולות */
+.hero .row .share-btn{margin-inline-start:auto;color:var(--muted)}
+/* קו מנחה בגלילה במגע (נוצר ב־app.js) — זז עם התוכן, דועך כשמרימים את האצבע */
+.scroll-guide{position:absolute;left:0;right:0;height:2px;margin-top:-1px;z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--gold) 12%,var(--gold) 88%,transparent);opacity:.6;transition:opacity .6s ease}
+.scroll-guide.out{opacity:0}

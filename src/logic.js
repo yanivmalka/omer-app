@@ -42,7 +42,7 @@ const LOCS=[
 
 /* ============ STORAGE ============ */
 const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const DEF={speed:2,nusach:'em',nikud:true,before:true,after:true,fs:1.2,loc:'jlm',custom:null,tzeit:'d8.5',remind:false,offset:0,theme:'auto',sim:''};
+const DEF={speed:2,nusach:'em',nikud:true,before:true,after:true,fs:1.2,loc:'jlm',custom:null,tzeit:'d8.5',remind:false,remindMore:true,remindAsked:false,offset:0,theme:'auto',sim:''};
 let S=Object.assign({},DEF,store.get('omer-settings',{}));
 // גודל ראשוני גדול יותר (קריאה בעמידה, מחוץ לבית): משתמשים קיימים שלא שינו מברירת המחדל הישנה (1) עוברים ל־1.2
 if(!S.fsV){if(+S.fs===1)S.fs=DEF.fs;S.fsV=2;}
@@ -85,6 +85,39 @@ function omerOf(o){const h=hebParts(o),m=h.month.toLowerCase();
   if(m.startsWith('siv')&&h.day<=5)return 44+h.day;
   return null;}
 function nextStart(from){for(let i=0;i<420;i++){const o=addD(from,i),h=hebParts(o);if(h.month.toLowerCase().startsWith('nis')&&h.day===16)return addD(o,-1);}return null;}
+
+/* Reminder plan (pure): when to remind for each night of counting, from `from` (Date) for `days` days.
+   eve = צאת הכוכבים + offset; if remindMore: eve2 (+1h), late (+2.5h, not after 23:30),
+   morn (morning after, ~08:00, if the night was missed — count without a bracha), sunset (1h before sunset, last chance).
+   Never on Shabbat / Yom Tov (Pesach day 1 & 7; +2nd days outside Israel), from 20 min before sunset until 50 min after sunset. */
+function holyDay(o){if(new Date(o.y,o.m-1,o.d,12).getDay()===6)return true;
+  const h=hebParts(o),chul=loc().g!=='il';
+  return h.month.toLowerCase().startsWith('nis')&&(h.day===15||h.day===21||(chul&&(h.day===16||h.day===22)));}
+// קדושת היום: מ־20 דק' לפני השקיעה (הדלקת נרות) ועד 50 דק' אחרי השקיעה למחרת (יציאת שבת לחומרה)
+function holyTime(x){const o=ymd(x),ss=sunEvent(o,90.833,false);if(!ss)return holyDay(o);const t=x.getTime(),s0=ss.getTime();
+  if(t<s0-20*6e4)return holyDay(o);if(t<s0+50*6e4)return holyDay(o)||holyDay(addD(o,1));return holyDay(addD(o,1));}
+const REM_KINDS=['eve','eve2','late','morn','sunset'];
+function reminderPlan(from,days){
+  const out=[],start=addD(ymd(from),-1);
+  for(let i=0;i<=days;i++){
+    const o=addD(start,i),cnt=addD(o,1),n=omerOf(cnt);if(!n)continue;
+    const tz=tzeit(o);if(!tz)continue;
+    const year=hebParts(cnt).year;let eve=new Date(tz.getTime()+(+S.offset||0)*6e4);
+    // מוצאי שבת/חג: לא לפני שהשבת יצאה
+    const ss0=sunEvent(o,90.833,false);if(ss0&&holyDay(o)&&!holyDay(cnt)&&holyTime(eve))eve=new Date(ss0.getTime()+50*6e4);
+    const at={eve};
+    if(S.remindMore!==false){
+      at.eve2=new Date(eve.getTime()+60*6e4);
+      const late=new Date(eve.getTime()+150*6e4),cap=new Date(o.y,o.m-1,o.d,23,30);
+      if(late<=cap)at.late=late;else if(cap-at.eve2>=45*6e4)at.late=cap;
+      const al=alot(cnt),m8=new Date(cnt.y,cnt.m-1,cnt.d,8,0);at.morn=al&&al>m8?new Date(al.getTime()+30*6e4):m8;
+      const ss=sunEvent(cnt,90.833,false);if(ss)at.sunset=new Date(ss.getTime()-(holyDay(addD(cnt,1))?120:60)*6e4); // ערב שבת/חג: שעתיים לפני
+    }
+    REM_KINDS.forEach((kind,k)=>{const t=at[kind];if(!t||t<=from||holyTime(t))return;
+      out.push({id:(year%100)*1000+n*10+k,kind,at:t,n,year});});
+  }
+  return out.sort((a,b)=>a.at-b.at);
+}
 
 /* ============ STATE ============ */
 let ST={},viewDay=null,tab='sid',askedThisSession=false;

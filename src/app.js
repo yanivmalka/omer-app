@@ -3,7 +3,7 @@
 const {createElement:h,useState,useEffect,useLayoutEffect,Fragment}=React;
 const {OmerRoot,AppHeader,StatusBar,DayHero,Button,TextButton,Banner,DedicationCard,Quote,Tabs,Panel,Siddur,
   CollapsibleGroup,PrayerSection,Highlight,LinkButton,Note,AnaBekoach,Menorah,TrackerGrid,HesedSummary,MiniBar,
-  AutoScrollBar,Dialog,Field,Switch,FontSizeControl,AskList,AskItem,Toast}=window.OmerDS;
+  AutoScrollBar,Dialog,Field,Switch,FontSizeControl,AskList,AskItem,Toast,Icon,IconButton}=window.OmerDS;
 
 const tx=s=>stripNikud(s,S.nikud);
 
@@ -46,18 +46,77 @@ function openAsk(){const days=unknownDays();if(!days.length)return;UI.askDays=da
 function closeAsk(){UI.ask=false;rerender();}
 
 /* ============ REMINDERS ============ */
-let remT=null;
-function nextReminder(){const n=now();let tz=tzeit(ST.t);if(!tz||n>=tz)tz=tzeit(addD(ST.t,1));return tz?new Date(tz.getTime()+S.offset*6e4):null;}
-function scheduleReminder(){
-  if(remT)clearTimeout(remT);if(!S.remind||S.sim)return;
-  const at=nextReminder();if(!at)return;const ms=at-new Date();
-  if(ms>0&&ms<864e5)remT=setTimeout(()=>{
-    compute();const d=ST.target;if(!d||T()[d]==='y')return;
-    const body=countText(d,S.nusach).replace(/[֑-ׇ]/g,'');
-    try{if('Notification'in window&&Notification.permission==='granted')new Notification('ספירת העומר — הגיע הזמן',{body});else toast('הגיע הזמן לספור: '+body);}catch(e){toast('הגיע הזמן לספור');}
-    render();
-  },ms);
+// תזכורות חכמות (reminderPlan ב־logic.js): בערב, ואם עוד לא סומן — שוב אחרי שעה, מאוחר בערב, בבוקר ולפני השקיעה.
+// באפליקציה: התראות מקומיות (@capacitor/local-notifications) מתוזמנות ל־7 ימים קדימה, עם כפתור "ספרתי" בהתראה.
+// בדפדפן: רק כשהאפליקציה פתוחה (טיימר + Service Worker להצגה עם כפתור).
+const noNik=x=>String(x).replace(/[֑-ׇ]/g,'');
+function remText(it){const g=gem(it.n);
+  switch(it.kind){
+    case 'eve':return{title:`ספירת העומר — הלילה ${g}`,body:noNik(countText(it.n,S.nusach))};
+    case 'eve2':case 'late':return{title:'עדיין לא סימנת שספרת',body:`הלילה סופרים יום ${g} לעומר. אפשר לספור בברכה עד עלות השחר.`};
+    case 'morn':return{title:'ספרת אמש?',body:`אם שכחת — ספור היום בלי ברכה (יום ${g}), עד השקיעה. אם ספרת — סמן.`};
+    default:return{title:'לפני השקיעה',body:`אם לא ספרת אמש — ספור עכשיו, לפני השקיעה, בלי ברכה (יום ${g}), כדי להמשיך לספור בברכה.`};}}
+function remPlan(){
+  if(!S.remind||S.sim)return [];
+  return reminderPlan(new Date(),7).filter(it=>{const v=(TRACK[it.year]||{})[it.n];return v!=='y'&&v!=='n';});}
+function markCounted(n,year){n=+n;year=+year||ST.year;if(!n)return;
+  if(!TRACK[year])TRACK[year]={};TRACK[year][n]='y';saveT();render();toast('נרשם כהושלם');}
+let LN=null,lnReady=null;
+function lnInit(){if(lnReady)return lnReady;
+  lnReady=(async()=>{LN=nativePlugin('LocalNotifications');if(!LN)return null;
+    try{await LN.createChannel({id:'omer',name:'תזכורת לספירת העומר',importance:4,visibility:1,vibration:true});}catch(e){}
+    try{await LN.registerActionTypes({types:[{id:'OMER',actions:[{id:'done',title:'ספרתי ✓'}]}]});}catch(e){}
+    LN.addListener('localNotificationActionPerformed',ev=>{const x=(ev&&ev.notification&&ev.notification.extra)||{};
+      if(ev.actionId==='done'){markCounted(x.n,x.year);
+        // סימון מההתראה: האפליקציה נפתחת לרגע — מחזירים את המשתמש למה שעשה
+        const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
+      else if(x.n&&(x.n===ST.target||x.n===ST.inProg)){viewDay=x.n;if(tab!=='sid')goTab('sid',true);render();window.scrollTo({top:0});}});
+    return LN;})();
+  return lnReady;}
+let remSyncT=null,remWebT=null;
+function scheduleReminder(){clearTimeout(remSyncT);remSyncT=setTimeout(syncReminders,400);}
+async function syncReminders(){
+  const plan=remPlan();
+  if(NATIVE){const L=await lnInit();if(!L)return;
+    try{const p=await L.getPending();if(p&&p.notifications&&p.notifications.length)await L.cancel({notifications:p.notifications.map(x=>({id:x.id}))});
+      if(plan.length)await L.schedule({notifications:plan.map(it=>Object.assign(remText(it),{id:it.id,schedule:{at:it.at,allowWhileIdle:true},
+        channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n:it.n,year:it.year}}))});}
+    catch(e){console.warn('reminders',e);}
+    return;}
+  clearTimeout(remWebT);const it=plan[0];if(!it)return;const ms=it.at-new Date();
+  if(ms>0&&ms<864e5)remWebT=setTimeout(()=>{const v=(TRACK[it.year]||{})[it.n];if(v!=='y'&&v!=='n')showWebNotif(it);scheduleReminder();},ms);
 }
+async function showWebNotif(it){const {title,body}=remText(it);
+  try{if('Notification'in window&&Notification.permission==='granted'){
+      const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+      const opt={body,dir:'rtl',lang:'he',tag:'omer-'+it.id,icon:'icons/icon-192.png',data:{n:it.n,year:it.year}};
+      if(reg&&reg.showNotification)return reg.showNotification(title,Object.assign(opt,{actions:[{action:'done',title:'ספרתי ✓'}]}));
+      return new Notification(title,opt);}}catch(e){}
+  toast(title+' — '+body);}
+async function remPermission(){
+  if(NATIVE){const L=await lnInit();if(!L)return false;
+    try{let p=await L.checkPermissions();if(p.display!=='granted')p=await L.requestPermissions();return p.display==='granted';}catch(e){return false;}}
+  if(!('Notification'in window))return false;
+  if(Notification.permission==='default'){try{await Notification.requestPermission();}catch(e){}}
+  return Notification.permission==='granted';}
+async function setRemind(on){
+  S.remind=!!on;S.remindAsked=true;saveS();render();
+  if(!on){scheduleReminder();return;}
+  const ok=await remPermission();
+  if(!ok)toast(NATIVE?'כדי לקבל תזכורות יש לאשר התראות לאפליקציה בהגדרות הטלפון':'הדפדפן לא מאשר התראות — התזכורת תוצג רק כשהאפליקציה פתוחה');
+  const next=remPlan()[0];
+  if(next)toast('תזכורת הבאה: '+next.at.toLocaleString('he-IL',{weekday:'long',hour:'2-digit',minute:'2-digit'}));
+  else if(ok)toast('התזכורות הופעלו — יתחילו בימי הספירה');
+  scheduleReminder();}
+async function testReminder(){const ok=await remPermission();if(!ok){toast('ההתראות לא אושרו');return;}
+  const n=ST.target||ST.inProg||viewDay||1,it={id:99,kind:'eve',n,year:ST.year,at:new Date(Date.now()+5000)};
+  if(NATIVE){const L=await lnInit();
+    try{await L.schedule({notifications:[Object.assign(remText(it),{id:99,schedule:{at:it.at,allowWhileIdle:true},channelId:'omer',actionTypeId:'OMER',extra:{n,year:it.year}})]});}catch(e){toast('שגיאה: '+(e&&e.message||e));return;}}
+  else setTimeout(()=>showWebNotif(it),5000);
+  toast('התראת ניסיון תופיע בעוד 5 שניות');}
+// סימון מהתראה בדפדפן (sw.js שולח הודעה, או פותח את האפליקציה עם #done=שנה-יום)
+if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='omer-done')markCounted(d.n,d.year);});
+function doneFromHash(){const m=/#done=(\d+)-(\d+)/.exec(location.hash);if(m){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>markCounted(m[2],m[1]),300);}}
 
 /* ============ AUTO SCROLL ============ */
 let autoOn=false,autoMode=false,touching=false,lastT=0,acc=0;
@@ -249,6 +308,27 @@ function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
     if(!stepDay(dir,true))toast(dir>0?'זה היום האחרון בספירה':'זה היום הראשון בספירה');},{passive:true});
 })();
 
+/* ============ SCROLL GUIDE LINE ============ */
+// בגלילה במגע: קו מנחה אופקי מופיע באמצע המסך וזז יחד עם הטקסט (מסמן איפה קראת).
+// כשמרימים את האצבע הוא דועך; אם יצא מהמסך — נעלם.
+(function(){let st=null,line=null;
+  const kill=(fade)=>{const l=line;line=null;if(!l)return;if(!fade){l.remove();return;}
+    l.classList.add('out');setTimeout(()=>l.remove(),650);};
+  const place=()=>{const l=document.createElement('div');l.className='scroll-guide';l.setAttribute('aria-hidden','true');
+    document.body.appendChild(l);const want=innerHeight/2;l.style.top=(scrollY+want)+'px';
+    const d=l.getBoundingClientRect().top-want;if(Math.abs(d)>.5)l.style.top=(scrollY+want-d)+'px'; // אם ה־body ממוקם
+    return l;};
+  document.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1||document.querySelector('dialog[open]')||!e.target.closest('#panel,.hero')){st=null;return;}
+    kill(false);st={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!st)return;if(e.touches.length!==1){st=null;kill(false);return;}
+    if(line)return;const t=e.touches[0],dx=t.clientX-st.x,dy=t.clientY-st.y;
+    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*1.2)line=place();},{passive:true});
+  const end=()=>{st=null;kill(true);};
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
+  addEventListener('scroll',()=>{if(!line)return;const r=line.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)kill(false);},{passive:true});
+})();
+
 /* ============ STABLE SIZES ============ */
 // גובה קבוע לאזורים שהטקסט שלהם מתחלף בין ימים (ספירה, כוונות, מקוצר, שורת הספירה בנוסח):
 // מודדים לכל יום ברוחב ובגודל הגופן הנוכחיים, ולוקחים את המקסימום בתוך כל שבוע (קבוצה של 7 ימים) — min-height.
@@ -338,7 +418,8 @@ function Hero(){
     const home=homeDay();
     acts.push(h(Button,{key:'home',size:'small',onClick:()=>changeDay(home,true)},active||ST.inProg?'חזרה להיום':'ליום הראשון'));
   }
-  acts.push(h(Button,{key:'share',variant:'ghost',size:'small',onClick:()=>share(vd)},'שתף'));
+  // שיתוף: אייקון קטן בקצה השורה (לא במרכז, לא כפתור טקסט)
+  acts.push(h(IconButton,{key:'share',size:'sm',label:'שתף',className:'share-btn',onClick:()=>share(vd)},h(Icon,{name:'share',size:18})));
   if((isCurrent||vd===ST.inProg)&&T()[vd]!=='y'){const at=actNode(vd);if(at)acts.push(h('div',{key:'act',className:'activity',style:{flexBasis:'100%'}},at));}
 
   const banners=[];
@@ -350,6 +431,12 @@ function Hero(){
       h('div',{className:'row',style:{marginTop:8}},
         h(Button,{size:'small',onClick:()=>{T()[ip]='y';saveT();render();}},'סמן כהושלם'),
         h(Button,{size:'small',variant:'ghost',onClick:()=>{T()[ip]='n';saveT();render();}},'לא ספרתי כלל'))));
+  }
+  if((active||ST.inProg)&&!S.remind&&!S.remindAsked){
+    banners.push(h(Banner,{key:'rem',title:'רוצה תזכורת לספור?'},'נזכיר לך בצאת הכוכבים, ושוב אם עוד לא סימנת שספרת. לא בשבת ובחג. אפשר לסמן "ספרתי" ישר מההתראה.',
+      h('div',{className:'row',style:{marginTop:8}},
+        h(Button,{size:'small',onClick:()=>setRemind(true)},'הפעל תזכורת'),
+        h(Button,{size:'small',variant:'ghost',onClick:()=>{S.remindAsked=true;saveS();render();}},'לא עכשיו'))));
   }
   if((active||ST.inProg)&&noBracha()){
     banners.push(h(Banner,{key:'nob',tone:'warn',title:'ממשיכים לספור בלי ברכה.'},'לפי הרשום, חסר יום שלם בספירה. נוהגים לשמוע את הברכה מהש"ץ ולענות אמן. במקרה של ספק — שאל רב.'));
@@ -544,8 +631,12 @@ function SettingsDialog(){
     h(Field,{label:'שיטת צאת הכוכבים',htmlFor:'sTzeit'},h('select',{id:'sTzeit',value:S.tzeit,onChange:set('tzeit')},
       h('option',{value:'d8.5'},'8.5° מתחת לאופק'),h('option',{value:'d7.083'},"7.083° (ג' כוכבים בינוניים)"),
       h('option',{value:'m18'},"18 דק' אחרי השקיעה"),h('option',{value:'m20'},"20 דק' אחרי השקיעה"),h('option',{value:'m72'},'72 דק\' (ר"ת)'))),
-    h(Field,{label:'תזכורת',hint:'התראה בצאת הכוכבים',htmlFor:'sRemind'},h(Switch,{id:'sRemind',checked:!!S.remind,onChange:onRemind})),
-    h(Field,{label:'דקות אחרי צאת הכוכבים',htmlFor:'sOffset'},h('input',{id:'sOffset',type:'number',min:0,max:240,step:5,style:{width:80},value:S.offset,onChange:set('offset',v=>Math.max(0,parseInt(v)||0))})),
+    h(Field,{label:'תזכורת לספור',hint:'בערב, ושוב אם עוד לא סימנת. לא בשבת ובחג.',htmlFor:'sRemind'},h(Switch,{id:'sRemind',checked:!!S.remind,onChange:e=>setRemind(e.target.checked)})),
+    S.remind?h(Field,{label:'מתי להזכיר',htmlFor:'sOffset'},h('select',{id:'sOffset',value:String(S.offset),onChange:e=>{S.offset=parseInt(e.target.value)||0;saveS();render();}},
+      [0,15,30,60,120].concat([0,15,30,60,120].includes(+S.offset)?[]:[+S.offset]).map(v=>h('option',{key:v,value:String(v)},v?`${v>=60?(v/60)+' שע׳':v+' דק׳'} אחרי צאת הכוכבים`:'בצאת הכוכבים')))):null,
+    S.remind?h(Field,{label:'תזכורות חוזרות',hint:'אחרי שעה, מאוחר בערב, ואם שכחת — בבוקר ולפני השקיעה. נעצר כשמסמנים "ספרתי".',htmlFor:'sRemMore'},
+      h(Switch,{id:'sRemMore',checked:S.remindMore!==false,onChange:e=>{S.remindMore=e.target.checked;saveS();render();}})):null,
+    S.remind?h(Field,{label:'בדיקה'},h(Button,{variant:'ghost',size:'small',onClick:testReminder},'שלח התראת ניסיון')):null,
     h(Field,{label:'ערכת צבע',htmlFor:'sTheme'},h('select',{id:'sTheme',value:S.theme,onChange:set('theme')},
       h('option',{value:'auto'},'לפי המכשיר'),h('option',{value:'light'},'בהירה'),h('option',{value:'dark'},'כהה'))),
     h(Field,{label:'תצוגה לפי תאריך אחר',hint:'לבדיקה ותצוגה מקדימה',htmlFor:'sSim'},
@@ -558,12 +649,6 @@ function SettingsDialog(){
     h(Field,{label:'נתוני מעקב',hint:'ימים שסומנו, זמני קריאה ושמות שהוזכרו'},h(Button,{variant:'ghost',size:'small',onClick:resetData},'מחק הכל')));
 }
 function setFs(v){S.fs=Math.min(1.4,Math.max(.8,+(+v).toFixed(1)));saveS();render();}
-async function onRemind(e){
-  S.remind=e.target.checked;saveS();
-  if(S.remind&&'Notification'in window&&Notification.permission==='default'){try{await Notification.requestPermission();}catch(err){}}
-  if(S.remind){const at=nextReminder();toast(at?'תזכורת הבאה: '+at.toLocaleString('he-IL',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'התזכורת הופעלה');}
-  render();
-}
 async function resetSettings(){
   if(await appConfirm('איפוס הגדרות','כל ההגדרות יחזרו לברירת המחדל. נתוני המעקב יישמרו.','אפס הגדרות')){S=Object.assign({},DEF);saveS();render();toast('ההגדרות אופסו');}
 }
@@ -689,4 +774,6 @@ function App(){
 
 compute();
 ReactDOM.createRoot(document.getElementById('app')).render(h(App));
+if(NATIVE)lnInit(); // מאזין לכפתור "ספרתי" בהתראה — גם כשהאפליקציה נפתחת ממנה
+doneFromHash();
 setTimeout(()=>{ensureDedic();scheduleReminder();maybeAsk();},0);
