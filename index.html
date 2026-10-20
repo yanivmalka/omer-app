@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B2452">
 <title>ספירת העומר</title>
+<script>
+/* on-screen startup error report (a white screen hides errors, especially inside the Android app) */
+(function(){var shown=0;function show(m){if(shown>2)return;shown++;try{var d=document.createElement('pre');d.style.cssText='position:fixed;z-index:99999;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;margin:0;padding:12px;background:#300;color:#fff;font:12px/1.4 monospace;direction:ltr;white-space:pre-wrap';d.textContent=m;(document.body||document.documentElement).appendChild(d);}catch(e){}}
+window.addEventListener('error',function(e){show('JS error: '+e.message+' @ '+(e.filename||'').split('/').pop()+':'+e.lineno+':'+e.colno+(e.error&&e.error.stack?'\n'+e.error.stack:''));});
+window.addEventListener('unhandledrejection',function(e){var r=e.reason;if(r&&r.message==='NEED_PERMISSION')return;show('Promise: '+(r&&(r.stack||r.message)||r));});
+setTimeout(function(){var a=document.getElementById('app');if(a&&!a.children.length)show('No UI after 4s. React='+(typeof React)+' OmerDS='+(typeof OmerDS)+' Capacitor='+(typeof Capacitor));},4000);
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -25,7 +33,7 @@
 <script src="src/logic.js"></script>
 <script src="src/app.js"></script>
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+if('serviceWorker' in navigator&&!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 </script>
 </body>
 </html>

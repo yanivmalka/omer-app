@@ -261,11 +261,13 @@ function TrackerTab(){
 // The native plugin OmerUpdater (android/.../OmerUpdaterPlugin.java) downloads it and opens Android's installer.
 const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
 const UPD_REPO='yanivmalka/omer-app';
-const Updater=NATIVE?Capacitor.registerPlugin('OmerUpdater'):null;
+let Updater=null;try{if(NATIVE)Updater=Capacitor.registerPlugin('OmerUpdater');}catch(e){console.error(e);}
 const UPD={cur:null,status:'idle',latestCode:0,url:'',pct:0,msg:''};
-if(NATIVE){
-  Updater.getVersion().then(v=>{UPD.cur=v;rerender();autoCheckUpdate();}).catch(()=>{});
-  Updater.addListener('progress',e=>{UPD.pct=e.percent||0;rerender();});
+if(NATIVE&&Updater){
+  try{
+    Promise.resolve(Updater.getVersion()).then(v=>{UPD.cur=v;rerender();autoCheckUpdate();}).catch(()=>{});
+    Promise.resolve(Updater.addListener('progress',e=>{UPD.pct=e.percent||0;rerender();})).catch(()=>{});
+  }catch(e){console.error(e);}
 }
 async function checkUpdate(silent){
   if(!NATIVE||!UPD.cur||UPD.status==='checking'||UPD.status==='downloading')return;
