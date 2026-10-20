@@ -739,10 +739,12 @@ var OmerDS = (() => {
         const c = pos(s + ws[i] / 2);
         s += ws[i] + gap;
         const ang = Math.atan2(-c.ty, -c.tx) * 180 / Math.PI, cls = idx === n ? "today" : idx < n ? "past" : "";
-        words.push(/* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("g", { transform: `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${ang.toFixed(1)})`, children: [
+        const wordG = /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("g", { transform: `translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${ang.toFixed(1)})`, children: [
           idx === n && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("rect", { className: "tbg", x: (-ws[i] / 2 - 6).toFixed(1), y: (-FS * 0.85).toFixed(1), width: (ws[i] + 12).toFixed(1), height: (FS * 1.75).toFixed(1), rx: 8 }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("text", { className: "mw " + cls, textAnchor: "middle", dominantBaseline: "central", direction: "rtl", children: t(w) })
-        ] }, idx));
+        ] });
+        // מילת היום עטופה בקבוצה בלי סיבוב — כדי שאפקט (למשל להבות) יעלה כלפי מעלה במסך ולא לאורך המילה
+        words.push(idx === n ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("g", { className: "mw-today-wrap", children: wordG }, idx) : React3.cloneElement(wordG, { key: idx }));
       });
       if (o === 0) base = v.slice(7).map((w) => {
         idx++;

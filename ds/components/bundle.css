@@ -252,43 +252,29 @@ dialog.omer-dialog::backdrop{background:rgba(10,14,35,.55)}
 .ask-item .seg button{white-space:nowrap}
 .dlg:focus{outline:none}
 
-/* ===== סגנון הדגשה "להבות אש" (html[data-accent="fire"]) — במקום זהב: האותיות עצמן עשויות אש לוהטת ומרצדת ===== */
+/* ===== סגנון הדגשה "להבות אש" (html[data-accent="fire"]) — לשונות אש מתנודדות סביב קווי המתאר של האותיות (כמו נר), המילוי נשאר גחלת כהה.
+   המסננים (#omerFlame, #omerFlameL) מוזרקים למסמך ב־app.js (FIRE FILTERS). ===== */
 :root[data-accent="fire"],:root[data-accent="fire"] .omer-root{
-  --gold:#C2410C; --gold-strong:#9A2D06; --gold-wash:#FFE9D8; --on-gold:#FFF8F0;
-  --ft1:#6E0F00; --ft2:#C42700; --ft3:#F06000; --ft4:#FF9F1A; --ft5:#FFC845; --fire-glow:rgba(255,90,0,.45);
+  --gold:#C2410C; --gold-strong:#9A2D06; --gold-wash:#FFE9D8; --on-gold:#FFF8F0; --ember:#7A1E00;
 }
 @media (prefers-color-scheme:dark){
   :root[data-accent="fire"]:not([data-theme="light"]),:root[data-accent="fire"]:not([data-theme="light"]) .omer-root{
-    --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.14); --on-gold:#1A0800;
-    --ft1:#D42200; --ft2:#FF5A00; --ft3:#FF9500; --ft4:#FFD040; --ft5:#FFF6C8; --fire-glow:rgba(255,110,20,.75);
+    --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.12); --on-gold:#1A0800; --ember:#8A2400;
   }
 }
 :root[data-accent="fire"][data-theme="dark"],:root[data-accent="fire"][data-theme="dark"] .omer-root{
-  --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.14); --on-gold:#1A0800;
-  --ft1:#D42200; --ft2:#FF5A00; --ft3:#FF9500; --ft4:#FFD040; --ft5:#FFF6C8; --fire-glow:rgba(255,110,20,.75);
+  --gold:#FF8A3D; --gold-strong:#FFB070; --gold-wash:rgba(255,110,40,.12); --on-gold:#1A0800; --ember:#8A2400;
 }
-/* כמו נר: הלהבה עולה ויורדת לאט, והזוהר מתנודד בעדינות */
-@keyframes omer-rise{0%{background-position:50% 100%}25%{background-position:49% 72%}50%{background-position:51% 50%}75%{background-position:49% 26%}100%{background-position:50% 0%}}
-@keyframes omer-flick{0%,100%{filter:drop-shadow(0 -1px 3px var(--fire-glow)) brightness(1)}30%{filter:drop-shadow(0 -2px 4px var(--fire-glow)) brightness(1.06)}55%{filter:drop-shadow(0 -1px 2px var(--fire-glow)) brightness(.97)}80%{filter:drop-shadow(0 -2px 5px var(--fire-glow)) brightness(1.04)}}
-[data-accent="fire"] .daynum .n,
+[data-accent="fire"] .daynum .n{color:var(--ember);filter:url(#omerFlameL)}
 [data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on,
 [data-accent="fire"] .hl,[data-accent="fire"] .hl-soft,[data-accent="fire"] .firstl,[data-accent="fire"] .ac,
 [data-accent="fire"] .kav > div > span,[data-accent="fire"] .countline .cl-text,[data-accent="fire"] .men-caption b{
-  background:linear-gradient(to top,var(--ft1) 0%,var(--ft2) 18%,var(--ft3) 36%,var(--ft4) 55%,var(--ft5) 72%,var(--ft3) 86%,var(--ft2) 100%);
-  background-size:100% 320%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
-  box-shadow:none;border-radius:0;
-  animation:omer-rise 7s ease-in-out infinite alternate,omer-flick 3.6s ease-in-out infinite;will-change:background-position,filter}
-/* האות/המילה של היום: קצב קצת שונה בכל אחת — שלא ירצדו יחד כמו מכונה */
-[data-accent="fire"] .kav > div:nth-child(2) > span{animation-duration:6.2s,3.1s}
-[data-accent="fire"] .kav > div:nth-child(3) > span{animation-duration:7.8s,4.2s}
-[data-accent="fire"] .acr .l.on,[data-accent="fire"] .kav .acr-k .l.on{font-weight:800;animation-duration:5.5s,2.8s}
-[data-accent="fire"] .acr .l.on{font-size:1.2em}
-/* בתוך משבצת שכבר בוערת — האותיות הלא מודגשות כהות (גחלים) */
-[data-accent="fire"] .kav .acr-k .l:not(.on){-webkit-text-fill-color:var(--muted);color:var(--muted)}
-[data-accent="fire"] .hero::before{background:linear-gradient(90deg,transparent,var(--ft2),var(--ft4),var(--ft2),transparent);background-size:200% 100%;animation:omer-rise 9s ease-in-out infinite alternate}
-/* מנורה: מילת היום, האותיות של היום ושם השבוע — טקסט באש (גרדיאנט SVG מרצד), בלי מלבן רקע */
+  color:var(--ember);background:none;box-shadow:none;filter:url(#omerFlame);font-weight:700}
+[data-accent="fire"] .kav .acr-k .l.on,[data-accent="fire"] .acr .l.on{display:inline-block}
+/* משבצת אנא בכח: רק האות של היום בוערת; שאר השם רגיל */
+[data-accent="fire"] .kav > div:nth-child(2) > span{filter:none;color:var(--muted)}
+[data-accent="fire"] .countline{background:var(--gold-wash)}
 [data-accent="fire"] .menorah .tbg:not(.soft){fill:none}
-[data-accent="fire"] .menorah .tbg.soft{fill:var(--gold-wash)}
-[data-accent="fire"] .menorah .mw.today,[data-accent="fire"] .menorah .today-t,[data-accent="fire"] .menorah .mside .lon{fill:url(#omerFireText);font-weight:800;animation:omer-flick 3.4s ease-in-out infinite}
-[data-accent="fire"] .menorah .chan.on{stroke:url(#omerFireWash)}
-@media (prefers-reduced-motion:reduce){[data-accent="fire"] *{animation:none!important}}
+[data-accent="fire"] .menorah .mw.today,[data-accent="fire"] .menorah .today-t{fill:var(--ember);font-weight:800}
+[data-accent="fire"] .menorah .mw-today-wrap,[data-accent="fire"] .menorah .today-t{filter:url(#omerFlame)}
+[data-accent="fire"] .menorah .mside .lon{fill:var(--gold)}
