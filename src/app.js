@@ -366,19 +366,23 @@ async function checkUpdate(silent){
 function autoCheckUpdate(){const last=store.get('omer-upd-check',0);if(Date.now()-last>6*36e5)checkUpdate(true);}
 async function runUpdate(){
   if(!NATIVE||!UPD.url)return;
-  UPD.status='downloading';UPD.pct=0;UPD.msg='';rerender();
+  UPD.status='downloading';UPD.pct=0;UPD.msg='';UPD.failed=false;rerender();
   try{await Updater.downloadAndInstall({url:UPD.url});UPD.status='avail';UPD.msg='ההתקנה נפתחה. אשר אותה בחלון של אנדרואיד.';}
   catch(e){
     if(e&&e.message==='NEED_PERMISSION'){UPD.status='avail';UPD.msg='אפשר לאפליקציה להתקין עדכונים (מתג "התקנת אפליקציות לא מוכרות" שנפתח), חזור לכאן והקש שוב על "עדכן עכשיו".';}
-    else{UPD.status='avail';UPD.msg='ההורדה נכשלה. נסה שוב.';}
+    else{UPD.status='avail';UPD.failed=true;UPD.msg='ההורדה נכשלה ('+(((e&&e.message)||e)+'').replace(/^download failed: /,'')+'). נסה שוב, או הורד דרך הדפדפן.';}
   }
   rerender();
 }
+// גיבוי: פתיחת קובץ ה־APK בדפדפן של הטלפון (ההתקנה משם)
+async function openUpdateInBrowser(){const url=UPD.url||`https://github.com/${UPD_REPO}/releases/latest/download/omer-app.apk`;
+  try{await Updater.openUrl({url});}catch(e){try{window.open(url,'_blank');}catch(_){}}}
 const updText=()=>UPD.status==='checking'?'בודק…':UPD.status==='downloading'?`מוריד… ${UPD.pct}%`:UPD.status==='none'?'האפליקציה מעודכנת.':UPD.status==='avail'?`גרסה חדשה זמינה (${UPD.latestCode}).`:'';
 function UpdateBanner(){
   if(!NATIVE||(UPD.status!=='avail'&&UPD.status!=='downloading'))return null;
   return h(Banner,{title:'יש גרסה חדשה'},UPD.status==='downloading'?`מוריד… ${UPD.pct}%`:(UPD.msg||'אפשר לעדכן בלחיצה אחת.'),
-    UPD.status==='avail'?h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',onClick:runUpdate},'עדכן עכשיו')):null);
+    UPD.status==='avail'?h('div',{className:'row',style:{marginTop:8}},h(Button,{size:'small',onClick:runUpdate},UPD.failed?'נסה שוב':'עדכן עכשיו'),
+      UPD.failed?h(Button,{size:'small',variant:'ghost',onClick:openUpdateInBrowser},'הורד בדפדפן'):null):null);
 }
 
 /* ============ ANDROID BACK BUTTON ============ */
@@ -422,7 +426,8 @@ function SettingsDialog(){
     h(Field,{label:'תצוגה לפי תאריך אחר',hint:'לבדיקה ותצוגה מקדימה',htmlFor:'sSim'},
       h('input',{id:'sSim',type:'datetime-local',value:S.sim||'',onChange:e=>{S.sim=e.target.value;saveS();viewDay=null;askedThisSession=false;render();}})),
     NATIVE?h(Field,{label:'עדכון אפליקציה',hint:[UPD.cur?'גרסה '+UPD.cur.versionName:'',updText()||'',UPD.msg].filter(Boolean).join(' · ')},
-      UPD.status==='avail'?h(Button,{size:'small',onClick:runUpdate},'עדכן עכשיו'):
+      UPD.status==='avail'?h('div',{className:'row'},h(Button,{size:'small',onClick:runUpdate},UPD.failed?'נסה שוב':'עדכן עכשיו'),
+        UPD.failed?h(Button,{size:'small',variant:'ghost',onClick:openUpdateInBrowser},'הורד בדפדפן'):null):
       h(Button,{variant:'ghost',size:'small',disabled:UPD.status==='checking'||UPD.status==='downloading',onClick:()=>checkUpdate(false)},'בדוק עדכון')):null,
     h(Field,{label:'הגדרות משתמש',hint:'נוסח, תצוגה, מיקום ותזכורות'},h(Button,{variant:'ghost',size:'small',onClick:resetSettings},'אפס הגדרות')),
     h(Field,{label:'נתוני מעקב',hint:'ימים שסומנו, זמני קריאה ושמות שהוזכרו'},h(Button,{variant:'ghost',size:'small',onClick:resetData},'מחק הכל')));
