@@ -359,6 +359,12 @@ function changeDay(n,animate){if(n<1||n>49||n===viewDay)return false;
   addEventListener('scroll',()=>{if(!line)return;const r=line.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)kill(false);},{passive:true});
 })();
 
+/* ============ CLOCK ============ */
+// שורה בכותרת: יום בשבוע, תאריך לועזי ושעה (לפי now() — כולל מצב בדיקה); מתעדכנת בתחילת כל דקה
+function civilLine(){const d=now();return d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+hm(d);}
+(function tick(){setTimeout(()=>{if(!S.sim&&!document.hidden)rerender();tick();},60000-Date.now()%60000+50);})();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)rerender();});
+
 /* ============ STABLE SIZES ============ */
 // גובה קבוע לאזורים שהטקסט שלהם מתחלף בין ימים (ספירה, כוונות, מקוצר, שורת הספירה בנוסח):
 // מודדים לכל יום ברוחב ובגודל הגופן הנוכחיים, ולוקחים את המקסימום בתוך כל שבוע (קבוצה של 7 ימים) — min-height.
@@ -798,7 +804,7 @@ function App(){
     h(MiniBar,{day:viewDay,nusach:S.nusach,visible:UI.mini,fontScale:S.fs,onFontScale:miniFs,onToggleTheme:toggleTheme,onSettings:openSettings,
       onCountClick:()=>window.scrollTo({top:0,behavior:'smooth'})}),
     h('div',{className:'wrap'},
-      h(AppHeader,{hebDate:(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t),fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings}),
+      h(AppHeader,{hebDate:(ST.night?'ליל ':'')+hebStr(ST.night?ST.cur:ST.t),civil:civilLine(),fontScale:S.fs,onFontScale:setFs,onToggleTheme:toggleTheme,onSettings:openSettings}),
       h(StatusBar,{items:status}),
       h(UpdateBanner),
       h(PreviewBanner),

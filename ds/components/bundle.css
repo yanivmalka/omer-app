@@ -251,3 +251,7 @@ dialog.omer-dialog::backdrop{background:rgba(10,14,35,.55)}
 .grp .chev{display:inline-flex}
 .ask-item .seg button{white-space:nowrap}
 .dlg:focus{outline:none}
+
+/* תאריך לועזי, יום בשבוע ושעה מתחת לתאריך העברי */
+.top{flex-wrap:wrap}
+.top .civil{flex-basis:100%;color:var(--muted);font-size:.9rem;margin-top:-4px}

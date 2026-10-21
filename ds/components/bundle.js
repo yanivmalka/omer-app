@@ -421,7 +421,7 @@ var OmerDS = (() => {
     return keepNikud ? s.replace(/[\u0591-\u05AF\u05BD\u05C0]/g, "") : s.replace(/[\u0591-\u05BD\u05BF-\u05C2\u05C4\u05C5\u05C7]/g, "");
   }
   var cx2 = (...c) => c.filter(Boolean).join(" ");
-  function AppHeader({ title = "\u05E1\u05E4\u05D9\u05E8\u05EA \u05D4\u05E2\u05D5\u05DE\u05E8", hebDate, fontScale = 1, onFontScale, onToggleTheme, onSettings }) {
+  function AppHeader({ title = "\u05E1\u05E4\u05D9\u05E8\u05EA \u05D4\u05E2\u05D5\u05DE\u05E8", hebDate, civil, fontScale = 1, onFontScale, onToggleTheme, onSettings }) {
     return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("header", { className: "top", children: [
       /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { children: title }),
@@ -431,7 +431,8 @@ var OmerDS = (() => {
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(FontSizeControl, { value: fontScale, onChange: onFontScale }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(IconButton, { size: "sm", label: "\u05D1\u05D4\u05D9\u05E8 \u05D0\u05D5 \u05DB\u05D4\u05D4", onClick: onToggleTheme, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "theme", size: 18 }) }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(IconButton, { label: "\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA", onClick: onSettings, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "settings" }) })
-      ] })
+      ] }),
+      civil && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "civil", children: civil })
     ] });
   }
   function StatusBar({ items }) {
