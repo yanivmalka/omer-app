@@ -71,19 +71,19 @@ function lnInit(){if(lnReady)return lnReady;
         // סימון מההתראה: האפליקציה נפתחת לרגע — מחזירים את המשתמש למה שעשה
         const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
       else if(x.n&&(x.n===ST.target||x.n===ST.inProg)){viewDay=x.n;if(tab!=='sid')goTab('sid',true);render();window.scrollTo({top:0});}});
-    return LN;})();
+    return true;})(); // לא להחזיר את אובייקט התוסף מתוך Promise — Capacitor זורק "LocalNotifications.then() is not implemented"
   return lnReady;}
 let remSyncT=null,remWebT=null;
 function scheduleReminder(){clearTimeout(remSyncT);remSyncT=setTimeout(syncReminders,400);}
 // מצב ההרשאות באנדרואיד (מוצג בהגדרות): התראות + "התראות ותזכורות" (שעון מעורר מדויק)
 const REMST={display:null,exact:null};
-async function remStatus(){const L=await lnInit();if(!L)return REMST;
+async function remStatus(){const L=(await lnInit())?LN:null;if(!L)return REMST;
   try{REMST.display=(await L.checkPermissions()).display;}catch(e){}
   try{REMST.exact=(await L.checkExactNotificationSetting()).exact_alarm;}catch(e){REMST.exact='granted';}
   rerender();return REMST;}
 async function syncReminders(){
   const plan=remPlan();
-  if(NATIVE){const L=await lnInit();if(!L)return;
+  if(NATIVE){const L=(await lnInit())?LN:null;if(!L)return;
     try{await remStatus();
       // מבטלים רק תזכורות של התוכנית (מזהה ≥ 1000) — לא את התראת הניסיון
       const p=await L.getPending(),old=((p&&p.notifications)||[]).filter(x=>+x.id>=1000);
@@ -105,7 +105,7 @@ async function showWebNotif(it){const {title,body}=remText(it);
       return new Notification(title,opt);}}catch(e){}
   toast(title+' — '+body);}
 async function remPermission(){
-  if(NATIVE){const L=await lnInit();if(!L)return false;
+  if(NATIVE){const L=(await lnInit())?LN:null;if(!L)return false;
     try{let p=await L.checkPermissions();if(p.display!=='granted')p=await L.requestPermissions();return p.display==='granted';}catch(e){return false;}}
   if(!('Notification'in window))return false;
   if(Notification.permission==='default'){try{await Notification.requestPermission();}catch(e){}}
@@ -122,13 +122,13 @@ async function setRemind(on){
   scheduleReminder();}
 async function testReminder(){const ok=await remPermission();if(!ok){toast(NATIVE?'ההתראות חסומות — אשר אותן בהגדרות הטלפון':'ההתראות לא אושרו');return;}
   const n=ST.target||ST.inProg||viewDay||1,it={id:99,kind:'eve',n,year:ST.year,at:new Date()};
-  if(NATIVE){const L=await lnInit();
+  if(NATIVE){const L=(await lnInit())?LN:null;
     // מוצגת מיד (בלי תזמון) — בודק הרשאה, ערוץ וכפתור "ספרתי"
     try{await L.schedule({notifications:[Object.assign(remText(it),{id:99,isExactNotification:false,channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n,year:it.year}})]});}
     catch(e){toast('שגיאה בהצגת ההתראה: '+(e&&e.message||e));return;}
     toast('נשלחה התראת ניסיון — בדוק בשורת ההתראות');remStatus();return;}
   setTimeout(()=>showWebNotif(it),3000);toast('התראת ניסיון תופיע בעוד 3 שניות');}
-async function askExact(){const L=await lnInit();if(!L)return;try{await L.changeExactNotificationSetting();}catch(e){}await remStatus();scheduleReminder();}
+async function askExact(){const L=(await lnInit())?LN:null;if(!L)return;try{await L.changeExactNotificationSetting();}catch(e){}await remStatus();scheduleReminder();}
 async function askDisplay(){const ok=await remPermission();if(!ok){toast('יש לאשר התראות בהגדרות הטלפון ← אפליקציות ← ספירת העומר ← התראות');}await remStatus();scheduleReminder();}
 // סימון מהתראה בדפדפן (sw.js שולח הודעה, או פותח את האפליקציה עם #done=שנה-יום)
 if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='omer-done')markCounted(d.n,d.year);});
