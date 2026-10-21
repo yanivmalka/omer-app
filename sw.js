@@ -1,5 +1,5 @@
 // Service worker: מאפשר פתיחה ללא רשת אחרי הביקור הראשון
-const CACHE = 'omer-v4';
+const CACHE = 'omer-v5';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './src/shell.css', './src/logic.js', './src/app.js',
   './ds/components/bundle.css', './ds/components/bundle.js',
@@ -26,6 +26,10 @@ self.addEventListener('notificationclick', e => {
   const d = e.notification.data || {}; e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
     const c = list[0];
+    if (e.action === 'later') {
+      if (c) { c.postMessage({ type: 'omer-later', n: d.n, year: d.year, kind: d.kind }); return; }
+      return;
+    }
     if (e.action === 'done') {
       if (c) { c.postMessage({ type: 'omer-done', n: d.n, year: d.year }); return; }
       return self.clients.openWindow('./#done=' + d.year + '-' + d.n);

@@ -60,15 +60,27 @@ function remPlan(){
   if(!S.remind||S.sim)return [];
   return reminderPlan(new Date(),7).filter(it=>{const v=(TRACK[it.year]||{})[it.n];return v!=='y'&&v!=='n';});}
 function markCounted(n,year){n=+n;year=+year||ST.year;if(!n)return;
-  if(!TRACK[year])TRACK[year]={};TRACK[year][n]='y';saveT();render();toast('נרשם כהושלם');}
+  if(!TRACK[year])TRACK[year]={};TRACK[year][n]='y';saveT();cancelSnooze();render();toast('נרשם כהושלם');}
+// "תזכיר לי בהמשך": תזכורת אחת נוספת בעוד חצי שעה (לפני השקיעה — רבע שעה). מזהה 500, לא נמחק בסנכרון; מתבטל כשמסמנים.
+const SNOOZE_ID=500;let snoozeWebT=null;
+function cancelSnooze(){clearTimeout(snoozeWebT);if(LN)try{LN.cancel({notifications:[{id:SNOOZE_ID}]}).catch(()=>{});}catch(e){}}
+async function snoozeReminder(n,year,kind){n=+n;year=+year||ST.year;if(!n)return;
+  const mins=kind==='sunset'?15:30,it={id:SNOOZE_ID,kind:kind||'eve',n,year,at:new Date(Date.now()+mins*6e4)};
+  if(NATIVE){const L=(await lnInit())?LN:null;if(!L)return;
+    try{await L.schedule({notifications:[Object.assign(remText(it),{id:SNOOZE_ID,schedule:{at:it.at,allowWhileIdle:true},isExactNotification:REMST.exact==='granted',
+      channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n,year,kind:it.kind}})]});}catch(e){toast('שגיאה: '+(e&&e.message||e));return;}}
+  else{clearTimeout(snoozeWebT);snoozeWebT=setTimeout(()=>{const v=(TRACK[year]||{})[n];if(v!=='y'&&v!=='n')showWebNotif(it);},mins*6e4);}
+  toast(`נזכיר לך בעוד ${mins===30?'חצי שעה':'רבע שעה'}`);}
 let LN=null,lnReady=null;
 function lnInit(){if(lnReady)return lnReady;
   lnReady=(async()=>{LN=nativePlugin('LocalNotifications');if(!LN)return null;
     try{await LN.createChannel({id:'omer',name:'תזכורת לספירת העומר',importance:4,visibility:1,vibration:true});}catch(e){}
-    try{await LN.registerActionTypes({types:[{id:'OMER',actions:[{id:'done',title:'ספרתי ✓'}]}]});}catch(e){}
+    try{await LN.registerActionTypes({types:[{id:'OMER',actions:[{id:'done',title:'ספרתי ✓'},{id:'later',title:'תזכיר לי בהמשך'}]}]});}catch(e){}
     LN.addListener('localNotificationActionPerformed',ev=>{const x=(ev&&ev.notification&&ev.notification.extra)||{};
       if(ev.actionId==='done'){markCounted(x.n,x.year);
         // סימון מההתראה: האפליקציה נפתחת לרגע — מחזירים את המשתמש למה שעשה
+        const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
+      else if(ev.actionId==='later'){snoozeReminder(x.n,x.year,x.kind);
         const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
       else if(x.n&&(x.n===ST.target||x.n===ST.inProg)){viewDay=x.n;if(tab!=='sid')goTab('sid',true);render();window.scrollTo({top:0});}});
     return true;})(); // לא להחזיר את אובייקט התוסף מתוך Promise — Capacitor זורק "LocalNotifications.then() is not implemented"
@@ -91,7 +103,7 @@ async function syncReminders(){
       // זמן מדויק רק אם המשתמש אישר; אחרת התוסף היה פותח את מסך ההגדרות בכל תזמון
       const exact=REMST.exact==='granted';
       if(plan.length)await L.schedule({notifications:plan.map(it=>Object.assign(remText(it),{id:it.id,schedule:{at:it.at,allowWhileIdle:true},
-        isExactNotification:exact,channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n:it.n,year:it.year}}))});}
+        isExactNotification:exact,channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n:it.n,year:it.year,kind:it.kind}}))});}
     catch(e){console.warn('reminders',e);}
     return;}
   clearTimeout(remWebT);const it=plan[0];if(!it)return;const ms=it.at-new Date();
@@ -100,8 +112,8 @@ async function syncReminders(){
 async function showWebNotif(it){const {title,body}=remText(it);
   try{if('Notification'in window&&Notification.permission==='granted'){
       const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
-      const opt={body,dir:'rtl',lang:'he',tag:'omer-'+it.id,icon:'icons/icon-192.png',data:{n:it.n,year:it.year}};
-      if(reg&&reg.showNotification)return reg.showNotification(title,Object.assign(opt,{actions:[{action:'done',title:'ספרתי ✓'}]}));
+      const opt={body,dir:'rtl',lang:'he',tag:'omer-'+it.id,icon:'icons/icon-192.png',data:{n:it.n,year:it.year,kind:it.kind}};
+      if(reg&&reg.showNotification)return reg.showNotification(title,Object.assign(opt,{actions:[{action:'done',title:'ספרתי ✓'},{action:'later',title:'תזכיר לי בהמשך'}]}));
       return new Notification(title,opt);}}catch(e){}
   toast(title+' — '+body);}
 async function remPermission(){
@@ -131,7 +143,7 @@ async function testReminder(){const ok=await remPermission();if(!ok){toast(NATIV
 async function askExact(){const L=(await lnInit())?LN:null;if(!L)return;try{await L.changeExactNotificationSetting();}catch(e){}await remStatus();scheduleReminder();}
 async function askDisplay(){const ok=await remPermission();if(!ok){toast('יש לאשר התראות בהגדרות הטלפון ← אפליקציות ← ספירת העומר ← התראות');}await remStatus();scheduleReminder();}
 // סימון מהתראה בדפדפן (sw.js שולח הודעה, או פותח את האפליקציה עם #done=שנה-יום)
-if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='omer-done')markCounted(d.n,d.year);});
+if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='omer-done')markCounted(d.n,d.year);else if(d.type==='omer-later')snoozeReminder(d.n,d.year,d.kind);});
 function doneFromHash(){const m=/#done=(\d+)-(\d+)/.exec(location.hash);if(m){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>markCounted(m[2],m[1]),300);}}
 
 /* ============ AUTO SCROLL ============ */
