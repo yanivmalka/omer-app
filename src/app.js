@@ -72,16 +72,18 @@ async function snoozeReminder(n,year,kind){n=+n;year=+year||ST.year;if(!n)return
   else{clearTimeout(snoozeWebT);snoozeWebT=setTimeout(()=>{const v=(TRACK[year]||{})[n];if(v!=='y'&&v!=='n')showWebNotif(it);},mins*6e4);}
   toast(`נזכיר לך בעוד ${mins===30?'חצי שעה':'רבע שעה'}`);}
 let LN=null,lnReady=null;
+// האם האפליקציה נפתחה בגלל הלחיצה על ההתראה (אז ממזערים אחרי הפעולה) או שהייתה פתוחה מקודם (לא סוגרים)
+let shownAt=Date.now();document.addEventListener('visibilitychange',()=>{if(!document.hidden)shownAt=Date.now();});
+const openedByNotification=()=>document.hidden||Date.now()-shownAt<2500;
+function minimizeIfOpenedByNotification(){if(!openedByNotification())return;const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
 function lnInit(){if(lnReady)return lnReady;
   lnReady=(async()=>{LN=nativePlugin('LocalNotifications');if(!LN)return null;
     try{await LN.createChannel({id:'omer',name:'תזכורת לספירת העומר',importance:4,visibility:1,vibration:true});}catch(e){}
     try{await LN.registerActionTypes({types:[{id:'OMER',actions:[{id:'done',title:'ספרתי ✓'},{id:'later',title:'תזכיר לי בהמשך'}]}]});}catch(e){}
     LN.addListener('localNotificationActionPerformed',ev=>{const x=(ev&&ev.notification&&ev.notification.extra)||{};
-      if(ev.actionId==='done'){markCounted(x.n,x.year);
-        // סימון מההתראה: האפליקציה נפתחת לרגע — מחזירים את המשתמש למה שעשה
-        const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
-      else if(ev.actionId==='later'){snoozeReminder(x.n,x.year,x.kind);
-        const A=nativePlugin('App');if(A&&A.minimizeApp)setTimeout(()=>A.minimizeApp().catch(()=>{}),1200);}
+      // סימון/דחייה מההתראה: אם האפליקציה נפתחה רק בשביל זה — מחזירים את המשתמש למה שעשה; אם הייתה פתוחה — נשארים
+      if(ev.actionId==='done'){markCounted(x.n,x.year);minimizeIfOpenedByNotification();}
+      else if(ev.actionId==='later'){snoozeReminder(x.n,x.year,x.kind);minimizeIfOpenedByNotification();}
       else if(x.n&&(x.n===ST.target||x.n===ST.inProg)){viewDay=x.n;if(tab!=='sid')goTab('sid',true);render();window.scrollTo({top:0});}});
     return true;})(); // לא להחזיר את אובייקט התוסף מתוך Promise — Capacitor זורק "LocalNotifications.then() is not implemented"
   return lnReady;}
