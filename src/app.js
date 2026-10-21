@@ -75,12 +75,23 @@ function lnInit(){if(lnReady)return lnReady;
   return lnReady;}
 let remSyncT=null,remWebT=null;
 function scheduleReminder(){clearTimeout(remSyncT);remSyncT=setTimeout(syncReminders,400);}
+// מצב ההרשאות באנדרואיד (מוצג בהגדרות): התראות + "התראות ותזכורות" (שעון מעורר מדויק)
+const REMST={display:null,exact:null};
+async function remStatus(){const L=await lnInit();if(!L)return REMST;
+  try{REMST.display=(await L.checkPermissions()).display;}catch(e){}
+  try{REMST.exact=(await L.checkExactNotificationSetting()).exact_alarm;}catch(e){REMST.exact='granted';}
+  rerender();return REMST;}
 async function syncReminders(){
   const plan=remPlan();
   if(NATIVE){const L=await lnInit();if(!L)return;
-    try{const p=await L.getPending();if(p&&p.notifications&&p.notifications.length)await L.cancel({notifications:p.notifications.map(x=>({id:x.id}))});
+    try{await remStatus();
+      // מבטלים רק תזכורות של התוכנית (מזהה ≥ 1000) — לא את התראת הניסיון
+      const p=await L.getPending(),old=((p&&p.notifications)||[]).filter(x=>+x.id>=1000);
+      if(old.length)await L.cancel({notifications:old.map(x=>({id:x.id}))});
+      // זמן מדויק רק אם המשתמש אישר; אחרת התוסף היה פותח את מסך ההגדרות בכל תזמון
+      const exact=REMST.exact==='granted';
       if(plan.length)await L.schedule({notifications:plan.map(it=>Object.assign(remText(it),{id:it.id,schedule:{at:it.at,allowWhileIdle:true},
-        channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n:it.n,year:it.year}}))});}
+        isExactNotification:exact,channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n:it.n,year:it.year}}))});}
     catch(e){console.warn('reminders',e);}
     return;}
   clearTimeout(remWebT);const it=plan[0];if(!it)return;const ms=it.at-new Date();
@@ -104,16 +115,21 @@ async function setRemind(on){
   if(!on){scheduleReminder();return;}
   const ok=await remPermission();
   if(!ok)toast(NATIVE?'כדי לקבל תזכורות יש לאשר התראות לאפליקציה בהגדרות הטלפון':'הדפדפן לא מאשר התראות — התזכורת תוצג רק כשהאפליקציה פתוחה');
+  if(NATIVE&&ok){await remStatus();if(REMST.exact==='denied'&&await appConfirm('תזכורת בזמן מדויק','כדי שהתזכורת תגיע בדיוק בצאת הכוכבים, אנדרואיד מבקש לאשר "התראות ותזכורות" לאפליקציה. לפתוח את ההגדרה?','פתח הגדרה'))await askExact();}
   const next=remPlan()[0];
   if(next)toast('תזכורת הבאה: '+next.at.toLocaleString('he-IL',{weekday:'long',hour:'2-digit',minute:'2-digit'}));
   else if(ok)toast('התזכורות הופעלו — יתחילו בימי הספירה');
   scheduleReminder();}
-async function testReminder(){const ok=await remPermission();if(!ok){toast('ההתראות לא אושרו');return;}
-  const n=ST.target||ST.inProg||viewDay||1,it={id:99,kind:'eve',n,year:ST.year,at:new Date(Date.now()+5000)};
+async function testReminder(){const ok=await remPermission();if(!ok){toast(NATIVE?'ההתראות חסומות — אשר אותן בהגדרות הטלפון':'ההתראות לא אושרו');return;}
+  const n=ST.target||ST.inProg||viewDay||1,it={id:99,kind:'eve',n,year:ST.year,at:new Date()};
   if(NATIVE){const L=await lnInit();
-    try{await L.schedule({notifications:[Object.assign(remText(it),{id:99,schedule:{at:it.at,allowWhileIdle:true},channelId:'omer',actionTypeId:'OMER',extra:{n,year:it.year}})]});}catch(e){toast('שגיאה: '+(e&&e.message||e));return;}}
-  else setTimeout(()=>showWebNotif(it),5000);
-  toast('התראת ניסיון תופיע בעוד 5 שניות');}
+    // מוצגת מיד (בלי תזמון) — בודק הרשאה, ערוץ וכפתור "ספרתי"
+    try{await L.schedule({notifications:[Object.assign(remText(it),{id:99,isExactNotification:false,channelId:'omer',actionTypeId:'OMER',autoCancel:true,extra:{n,year:it.year}})]});}
+    catch(e){toast('שגיאה בהצגת ההתראה: '+(e&&e.message||e));return;}
+    toast('נשלחה התראת ניסיון — בדוק בשורת ההתראות');remStatus();return;}
+  setTimeout(()=>showWebNotif(it),3000);toast('התראת ניסיון תופיע בעוד 3 שניות');}
+async function askExact(){const L=await lnInit();if(!L)return;try{await L.changeExactNotificationSetting();}catch(e){}await remStatus();scheduleReminder();}
+async function askDisplay(){const ok=await remPermission();if(!ok){toast('יש לאשר התראות בהגדרות הטלפון ← אפליקציות ← ספירת העומר ← התראות');}await remStatus();scheduleReminder();}
 // סימון מהתראה בדפדפן (sw.js שולח הודעה, או פותח את האפליקציה עם #done=שנה-יום)
 if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='omer-done')markCounted(d.n,d.year);});
 function doneFromHash(){const m=/#done=(\d+)-(\d+)/.exec(location.hash);if(m){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>markCounted(m[2],m[1]),300);}}
@@ -644,6 +660,8 @@ function SettingsDialog(){
       [0,15,30,60,120].concat([0,15,30,60,120].includes(+S.offset)?[]:[+S.offset]).map(v=>h('option',{key:v,value:String(v)},v?`${v>=60?(v/60)+' שע׳':v+' דק׳'} אחרי צאת הכוכבים`:'בצאת הכוכבים')))):null,
     S.remind?h(Field,{label:'תזכורות חוזרות',hint:'אחרי שעה, מאוחר בערב, ואם שכחת — בבוקר ולפני השקיעה. נעצר כשמסמנים "ספרתי".',htmlFor:'sRemMore'},
       h(Switch,{id:'sRemMore',checked:S.remindMore!==false,onChange:e=>{S.remindMore=e.target.checked;saveS();render();}})):null,
+    S.remind&&NATIVE&&REMST.display&&REMST.display!=='granted'?h(Field,{label:'התראות חסומות',hint:'בלי אישור לא תופיע אף תזכורת'},h(Button,{size:'small',onClick:askDisplay},'אשר התראות')):null,
+    S.remind&&NATIVE&&REMST.exact==='denied'?h(Field,{label:'תזכורת בזמן מדויק',hint:'בלי "התראות ותזכורות" אנדרואיד עלול לאחר את התזכורת בכמה דקות'},h(Button,{size:'small',variant:'ghost',onClick:askExact},'אפשר')):null,
     S.remind?h(Field,{label:'בדיקה'},h(Button,{variant:'ghost',size:'small',onClick:testReminder},'שלח התראת ניסיון')):null,
     h(Field,{label:'ערכת צבע',htmlFor:'sTheme'},h('select',{id:'sTheme',value:S.theme,onChange:set('theme')},
       h('option',{value:'auto'},'לפי המכשיר'),h('option',{value:'light'},'בהירה'),h('option',{value:'dark'},'כהה'))),
@@ -730,7 +748,7 @@ function checkMini(){const top=document.querySelector('.top');if(!top)return;let
   if(!show&&UI.mini&&Date.now()<miniLock){setTimeout(checkMini,miniLock-Date.now()+30);return;}
   if(show!==UI.mini){UI.mini=show;rerender();}}
 function miniFs(v){miniLock=Date.now()+2500;setFs(v);}
-function openSettings(){UI.settings=true;rerender();}
+function openSettings(){UI.settings=true;rerender();if(NATIVE&&S.remind)remStatus();}
 
 function App(){
   const [,setV]=useState(0);
