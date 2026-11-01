@@ -23,17 +23,15 @@ Service worker דורש שרת (לא file://). פרסום: GitHub Pages מ־main
 - **RENDER** — רכיבי React ב־app.js: `Hero` (DayHero), `SiddurTab` (קבוצות מתכווצות `CollapsibleGroup`), `MenorahTab` (`Menorah` — SVG מחושב בתוך מערכת העיצוב), `TrackerTab` (`TrackerGrid` + `HesedSummary`), דיאלוגים. מצב גלובלי (`S`, `ST`, `TRACK`, `viewDay`, `tab`) וקריאה ל־`render()` מרנדרת מחדש.
 - **READING ACTIVITY** — רישום אוטומטי של זמן שהייה/גלילה בנוסח (`ACT`, localStorage `omer-activity`).
 - **AUTO SCROLL** — 5 מהירויות (`SPEEDS`), פקד −/שם/+ עם החלקה רציפה, הקשה על הטקסט = הפעלה/עצירה, גלילה ידנית לא עוצרת.
-- **DEDICATIONS & QUOTES** — נטען מ־`window.claude.use('db')` (מאגר של claude.ai artifact). מחוץ ל־claude.ai האזור מוסתר. **יש להחליף ב־API של מערכת הניהול.**
+- **DEDICATIONS & QUOTES** — מהשרת המשותף [apps-platform](https://github.com/yanivmalka/apps-platform) (Firebase), דרך `vendor/apps-platform-lite.js` (`window.AppsPlatform`, נטען רק כשיש הגדרות) ו־`src/platform-config.js`. ההקדשות של הלילה = `apps/omer/slots/<שנה עברית>-<לילה>` (`ST.year`, `ST.target||ST.inProg`), בחירה משוקללת לפי `weight`; מונים נצברים במכשיר ונשלחים בכתיבה אחת (`PF.sponsor.track`). בלי הגדרות → האזור מוסתר. `?backend=memory` = נתוני בדיקה מקומיים (משותפים עם אתר ההקדשות באותו origin). אחרי שינוי ב־SDK להעתיק מחדש את `sdk/dist/apps-platform-lite.js`.
 - **MINI BAR** — סרגל עליון מקוצר שמופיע בגלילה.
 - `appConfirm` — חלון אישור פנימי (confirm() חסום ב־iframe).
 
 ### Storage (localStorage)
 `omer-settings`, `omer-track` (לפי שנה עברית → יום → 'y'|'n'), `omer-activity`, `omer-prayed`, `omer-shown`.
 
-### מבנה נתוני ההקדשות (למערכת הניהול)
-- `dedications/<id>`: `purpose`, `name`, `order`, `active`
-- `quotes/<id>`: `text`, `source`, `order`, `active`
-- `stats/<id>`: `shown`, `prayed`, `more`, `undo`, `dwellSec`, `hours{h:count}` — כרגע read-modify-write; בהפקה increment אטומי בשרת.
+### מבנה נתוני ההקדשות
+מוגדר ב־`ARCHITECTURE.md` של apps-platform: `slots` (מה מוצג בכל לילה, נכתב ע"י אתר הניהול כשהזמנה מאושרת), `stats/<שנה>-<לילה>-<shard>` (shown/prayed/more/dwell/hours לפי מזהה הזמנה), `quotes`.
 
 ## החלטות ודרישות שנקבעו עם המשתמש (לשמור עליהן)
 - היום מתחלף בצאת הכוכבים. מציגים "אתמול ספרו" ללא המילה "היום" וללא נקודה.
@@ -80,7 +78,7 @@ Service worker דורש שרת (לא file://). פרסום: GitHub Pages מ־main
 Capacitor (`android/`, `capacitor.config.json`, `npm run sync`). בדיקה בדפדפן: https://yanivmalka.github.io/omer-app/ (GitHub Pages מ־main; PR #3 מוזג — המשתמש: זו סביבת פיתוח, לא הפקה. שינויים: לעבוד על android-apk ולמזג ל־main כדי שיופיעו בקישור). כל push ל־main/android-apk מריץ `.github/workflows/android.yml`, שבונה ומפרסם Release `build-N` עם `omer-app.apk` (versionCode = N). באפליקציה: באנר "יש גרסה חדשה" + הגדרות → "בדוק עדכון" (פלאגין `OmerUpdater`). החתימה במפתח `android/keystore` — אסור להחליף מפתח (אחרת עדכון לא יותקן). לוגים של Actions חסומים מהסביבה; שגיאות gradle מוצגות כ־annotations. `index.html` מציג שגיאות הפעלה על המסך. `build-www` מעתיק את `@capacitor/core/dist/capacitor.js` ל־www ומוסיף אותו ל־index.html — בלעדיו אין `registerPlugin` והפלאגינים (עדכון, כפתור הקודם) לא נגישים; ב־app.js דרך `nativePlugin(name)`.
 
 ## רעיונות פתוחים שהוצעו (לא מומשו)
-ל"ג בעומר/יום העצמאות/יום ירושלים; מצב בית כנסת; ווידג'ט; סנכרון משפחתי; לימוד יומי על מידת היום; מערכת ניהול להקדשות ומשפטים.
+ל"ג בעומר/יום העצמאות/יום ירושלים; מצב בית כנסת; ווידג'ט; סנכרון משפחתי; לימוד יומי על מידת היום; ניהול משפטים (quotes) באתר הניהול; הצגת "הוקדש ע"י" (`from`) ב־DedicationCard.
 
 ## כללי עבודה
 - לבדוק שינויים בדפדפן headless (Playwright) — RTL, מצב כהה, רוחב 360–400px, גדלי טקסט 0.8 ו־1.4.
