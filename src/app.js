@@ -188,15 +188,19 @@ let PF=null,DEDS=[],QUOTES=[],STATS={},dIdx=null,dedLoaded=false,dedKey='';
 const PRAY=store.get('omer-prayed',{});
 const todayKey=()=>{const t=ymd(new Date());return t.y+'-'+t.m+'-'+t.d;};
 const dedNight=()=>{const n=ST.target||ST.inProg;return n&&ST.year?{season:ST.year,night:n}:null;};
-function shownList(){let s=store.get('omer-shown',{});if(s.date!==todayKey())s={date:todayKey(),ids:[]};s.ids=s.ids.filter(id=>DEDS.some(d=>d.id===id));return s;}
+let PSHOWN={ids:[]};
+function shownList(){if(PREVIEW){PSHOWN.ids=PSHOWN.ids.filter(id=>DEDS.some(d=>d.id===id));return PSHOWN;}let s=store.get('omer-shown',{});if(s.date!==todayKey())s={date:todayKey(),ids:[]};s.ids=s.ids.filter(id=>DEDS.some(d=>d.id===id));return s;}
 function addShown(){const s=shownList();const unseen=DEDS.filter(d=>!s.ids.includes(d.id));const fresh=unseen.filter(d=>!PRAY[d.id]);const pool=fresh.length?fresh:unseen;
-  if(!pool.length)return false;const it=PF.sponsor.pick(pool.map(d=>d.raw));const d=DEDS.find(x=>x.id===it.orderId);s.ids.push(d.id);store.set('omer-shown',s);dIdx=s.ids.length-1;bump(d.id,{shown:1});return true;}
-function bump(id,f){const k=dedNight();if(!PF||!k)return;
+  if(!pool.length)return false;const it=PF?PF.sponsor.pick(pool.map(d=>d.raw)):pool[0].raw;const d=DEDS.find(x=>x.id===it.orderId);s.ids.push(d.id);if(!PREVIEW)store.set('omer-shown',s);dIdx=s.ids.length-1;bump(d.id,{shown:1});return true;}
+function bump(id,f){const k=dedNight();if(!PF||!k||PREVIEW)return;
   for(const[field,n]of Object.entries(f)){const name=field==='dwellSec'?'dwell':field;if(['shown','prayed','more','dwell'].includes(name))PF.sponsor.track(k.season,k.night,name,id,n);}}
 function curDed(){const s=shownList();if(!s.ids.length)return null;if(dIdx===null||dIdx>=s.ids.length)dIdx=s.ids.length-1;return DEDS.find(d=>d.id===s.ids[dIdx]);}
-function ensureDedic(){if(PF&&DEDS.length&&!shownList().ids.length)addShown();}
+function ensureDedic(){if((PF||PREVIEW)&&DEDS.length&&!shownList().ids.length)addShown();}
+/* preview: the customer's dedication comes first, then the night's real ones */
+function withPreview(list){if(!PREVIEW)return list;const me={id:'preview',purpose:PREVIEW.purpose,name:PREVIEW.name,from:PREVIEW.from,raw:{orderId:'preview',weight:1}};
+  if(!PSHOWN.ids.length)PSHOWN.ids=['preview'];return[me].concat(list.filter(d=>d.id!==PREVIEW.orderId));}
 function pray(d,btn){
-  PRAY[d.id]={ts:Date.now(),name:d.name,purpose:d.purpose||''};store.set('omer-prayed',PRAY);
+  PRAY[d.id]={ts:Date.now(),name:d.name,purpose:d.purpose||''};if(!PREVIEW)store.set('omer-prayed',PRAY);
   bump(d.id,{prayed:1});
   STATS[d.id]=Object.assign({},STATS[d.id],{prayed:((STATS[d.id]&&STATS[d.id].prayed)||0)+1});
   const box=document.querySelector('.dedic'),br=btn?btn.getBoundingClientRect():null,bx=box?box.getBoundingClientRect():null;
@@ -220,18 +224,18 @@ function flushDwell(){const d=curDed();if(d&&dwell>0)bump(d.id,{dwellSec:dwell})
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushDwell();});
 function loadScript(src){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;e.async=true;e.onload=ok;e.onerror=no;document.head.appendChild(e);});}
 async function loadDedications(){const k=dedNight();const key=k?k.season+'-'+k.night:'';if(!PF||key===dedKey)return;dedKey=key;
-  if(!k){DEDS=[];STATS={};dedLoaded=true;rerender();return;}
+  if(!k){DEDS=withPreview([]);STATS={};dedLoaded=true;rerender();return;}
   try{const items=await PF.sponsor.night(k.season,k.night);
-    DEDS=items.map(i=>({id:i.orderId,purpose:i.purpose||'',name:i.name||'',from:i.from||'',raw:i}));
+    DEDS=withPreview(items.map(i=>({id:i.orderId,purpose:i.purpose||'',name:i.name||'',from:i.from||'',raw:i})));
     STATS=await PF.sponsor.counts(k.season,k.night).catch(()=>({}));}
-  catch(e){dedKey='';DEDS=[];}
+  catch(e){dedKey='';DEDS=withPreview([]);}
   dedLoaded=true;ensureDedic();rerender();}
 (async()=>{
   const cfg=window.PLATFORM_CONFIG||{},memory=new URLSearchParams(location.search).get('backend')==='memory';
-  if(!memory&&!(cfg.firebase&&cfg.firebase.apiKey)){dedLoaded=true;rerender();return;}
+  if(!memory&&!(cfg.firebase&&cfg.firebase.apiKey)){DEDS=withPreview([]);dedLoaded=true;ensureDedic();rerender();return;}
   try{if(!window.AppsPlatform)await loadScript('vendor/apps-platform-lite.js');
     PF=await AppsPlatform.init({appId:cfg.appId||'omer',firebase:cfg.firebase,backend:memory?'memory':'firebase'});}catch(e){PF=null;}
-  if(!PF){dedLoaded=true;rerender();return;}
+  if(!PF){DEDS=withPreview([]);dedLoaded=true;ensureDedic();rerender();return;}
   PF.db.list(PF.path('quotes')).then(l=>{QUOTES=l.filter(q=>q.active!==false).sort((a,b)=>(a.order||0)-(b.order||0));rerender();}).catch(()=>{});
   await loadDedications();
   // the night changes at tzeit: re-read the slot; refresh the "prayed" counters while the app is open
@@ -240,7 +244,7 @@ async function loadDedications(){const k=dedNight();const key=k?k.season+'-'+k.n
 })();
 
 function Dedic(){
-  if(!PF||!DEDS.length)return null;
+  if((!PF&&!PREVIEW)||!DEDS.length)return null;
   const d=curDed();if(!d)return null;
   const s=shownList(),prayed=!!PRAY[d.id],cnt=(STATS[d.id]&&STATS[d.id].prayed)||0;
   return h(DedicationCard,{purpose:d.purpose||'',name:d.name||'',prayedCount:cnt,prayed,index:dIdx+1,total:s.ids.length,
@@ -260,7 +264,14 @@ function setSim(v){S.sim=v;saveS();viewDay=null;askedThisSession=false;render();
 function jumpToStart(){const o=ST.nextStart;if(!o)return;const tz=tzeit(o);
   const d=tz?new Date(tz.getTime()+15*6e4):new Date(o.y,o.m-1,o.d,21,0);
   setSim(toLocalInput(d));window.scrollTo({top:0,behavior:'smooth'});toast('מצב בדיקה: ליל היום הראשון לעומר');}
-function PreviewBanner(){if(!S.sim)return null;
+/* dedication preview (see PREVIEW in logic.js): jump to that night's evening, without saving */
+if(PREVIEW){const yr=PREVIEW.season?PREVIEW.season-3760:new Date().getFullYear();const o=nextStart({y:yr,m:1,d:1});
+  if(o){const e=addD(o,PREVIEW.night-1),tz=tzeit(e);S.sim=toLocalInput(tz?new Date(tz.getTime()+15*6e4):new Date(e.y,e.m-1,e.d,21,0));}}
+function closePreview(){location.href=location.pathname;}
+function PreviewBanner(){
+  if(PREVIEW)return h(Banner,{tone:'warn',title:'תצוגה מקדימה של ההקדשה'},`כך ההקדשה תוצג באפליקציה בליל ${gem(PREVIEW.night)} לעומר. `,
+    h(TextButton,{onClick:closePreview},'סגירת התצוגה המקדימה'));
+  if(!S.sim)return null;
   return h(Banner,{tone:'warn',title:'מצב בדיקה'},`התצוגה לפי ${new Date(S.sim).toLocaleString('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}. `,
     h(TextButton,{onClick:()=>{setSim('');toast('חזרה לתאריך האמיתי');}},'חזרה לתאריך האמיתי'));}
 
@@ -539,7 +550,7 @@ function SiddurTab(){
 
 // סוף הנוסח: סימון היום, מעבר למעקב, ותזכורת להזכיר את בעל ההקדשה (כשיש מאגר הקדשות)
 function EndCTA({n}){
-  const home=n===ST.target||n===ST.inProg,done=T()[n]==='y',d=PF&&DEDS.length?curDed():null;
+  const home=n===ST.target||n===ST.inProg,done=T()[n]==='y',d=(PF||PREVIEW)&&DEDS.length?curDed():null;
   const live=home||n<(ST.target||ST.inProg||0)||!!S.sim; // אפשר לסמן: היום, יום שעבר, או כל יום במצב בדיקה
   const toTracker=()=>goTab('trk');
   return h('div',{className:'endcta'},

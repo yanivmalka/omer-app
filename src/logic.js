@@ -48,7 +48,11 @@ let S=Object.assign({},DEF,store.get('omer-settings',{}));
 if(!S.fsV){if(+S.fs===1)S.fs=DEF.fs;S.fsV=2;}
 S.fs=Math.min(1.4,Math.max(.8,+S.fs||DEF.fs));
 let TRACK=store.get('omer-track',{});
-const saveS=()=>store.set('omer-settings',S), saveT=()=>store.set('omer-track',TRACK);
+/* Dedication preview link from the dedications site: ?preview=1&p=<purpose>&n=<name>&f=<from>&night=<n>&season=<hebrew year>&o=<orderId>
+   Shows the app on that night with the customer's dedication first. Nothing is saved: the simulated date is kept out of the stored settings. */
+const PREVIEW=(()=>{try{const q=new URLSearchParams(location.search);if(!q.get('preview'))return null;
+  return{purpose:q.get('p')||'',name:(q.get('n')||'').slice(0,80),from:(q.get('f')||'').slice(0,40),night:Math.min(49,Math.max(1,parseInt(q.get('night'))||1)),season:parseInt(q.get('season'))||0,orderId:q.get('o')||'',prevSim:S.sim||''};}catch(e){return null;}})();
+const saveS=()=>store.set('omer-settings',PREVIEW?Object.assign({},S,{sim:PREVIEW.prevSim}):S), saveT=()=>store.set('omer-track',TRACK);
 
 /* ============ TIME ============ */
 const now=()=>S.sim?new Date(S.sim):new Date();
